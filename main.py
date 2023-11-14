@@ -14,7 +14,7 @@ def submit():
     file_name = file_name_label.cget("text")
     date_value = date_var.get()
     text1_content = text_readme.get("1.0", tk.END)
-    text2_content = text_pass.get("1.0", tk.END)
+    text2_content = text_pass.get()
     # text3_content = text3.get("1.0", tk.END)
 
     print("Selected from list:", selected)
@@ -26,7 +26,7 @@ def submit():
     print("Text 2 content:", text2_content)
     # print("Text 3 content:", text3_content)
 
-    leak_name_folder = create_directory_structure(selected, date_value, text1_content.replace("\n", ""))
+    leak_name_folder = create_directory_structure(selected, date_value, text1_content.replace("\n", ""), text2_content)
     print(leak_name_folder)
     remove_file_to_leak_folder(file_path, leak_name_folder)
 
@@ -54,7 +54,7 @@ def if_directory_not_exist_create_new(folder_name):
         os.makedirs(folder_name)
 
 
-def create_directory_structure(selected_value, date_value, leak_name_value):
+def create_directory_structure(selected_value, date_value, leak_name_value, pass_text):
     db_folder = DEFAULT_DB_FOLDER
     listbox_folder = os.path.join(db_folder, selected_value)
     date_folder = os.path.join(listbox_folder, date_value)
@@ -75,6 +75,8 @@ def create_directory_structure(selected_value, date_value, leak_name_value):
     # Create an empty readme file
     with open(readme_file, 'w') as file:
         file.write(leak_name_value)
+        if pass_text:
+            file.write(pass_text)
 
     return leak_name_folder
 
@@ -91,7 +93,7 @@ def remove_file_to_leak_folder(file_path, leak_name_folder):
 
 root = tk.Tk()
 root.title("Leeks file manager")
-root.geometry("400x320")
+root.geometry("350x400")
 
 # List
 options = ["Combo", "Database", "Logs", "Mixed"]
@@ -129,12 +131,11 @@ buttonframe = tk.Frame(root)
 buttonframe.columnconfigure(0, weight=1)
 buttonframe.columnconfigure(1, weight=1)
 
+date_decrement_button = tk.Button(buttonframe, text="<", command=decrement_date)
+date_decrement_button.grid(padx=10, pady=10,row=0, column=0, sticky=tk.W+tk.E)
 
-date_increment_button = tk.Button(buttonframe, text="<", command=increment_date)
-date_increment_button.grid(padx=10, pady=10,row=0, column=0, sticky=tk.W+tk.E)
-
-date_decrement_button = tk.Button(buttonframe, text=">", command=decrement_date)
-date_decrement_button.grid(padx=10, pady=10,row=0, column=1, sticky=tk.W+tk.E)
+date_increment_button = tk.Button(buttonframe, text=">", command=increment_date)
+date_increment_button.grid(padx=10, pady=10,row=0, column=1, sticky=tk.W+tk.E)
 
 buttonframe.grid(padx=10, pady=10,row=2, column=1, sticky=tk.W+tk.E)
 
