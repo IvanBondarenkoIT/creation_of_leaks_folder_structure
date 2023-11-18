@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 from datetime import datetime, timedelta
 import os
 import shutil
@@ -7,6 +8,7 @@ import shutil
 DEFAULT_DB_FOLDER = "E:\_WORK\TESTS"
 PAD_MAX = 10
 PAD_MIN = 5
+WINDOW_SIZE = "425x400"
 
 
 def submit():
@@ -18,6 +20,7 @@ def submit():
     text1_content = text_readme.get("1.0", tk.END)
     text2_content = text_pass.get()
     text3_content = text_domein.get()
+
 
     print("Selected from list:", selected)
     # print("Flag status:", flag_status)
@@ -31,12 +34,15 @@ def submit():
     leak_name_folder = create_directory_structure(selected, date_value, text1_content, text2_content, text3_content)
     print(leak_name_folder)
     remove_file_to_leak_folder(file_path, leak_name_folder)
+    result_message = leak_name_folder
+    messagebox.showinfo(title="Message", message="File replaced to: " + result_message)
 
 
 def choose_file():
     file_path = filedialog.askopenfilename()
     file_path_var.set(file_path)
     file_name_label.config(text=file_path)
+    domein_value.set(file_path.split("/")[-1])
 
 
 def increment_date():
@@ -83,7 +89,7 @@ def create_directory_structure(selected_value, date_value, leak_name_value, pass
     # Create an empty readme file
     with open(readme_file, 'w') as file:
 
-        if domain_text:
+        if domain_text and listbox.get(tk.ACTIVE) == "Database":
             file.write(domain_text+'\n')
 
         file.write(leak_name_value)
@@ -106,7 +112,7 @@ def remove_file_to_leak_folder(file_path, leak_name_folder):
 
 root = tk.Tk()
 root.title("Leeks file manager")
-root.geometry("350x400")
+root.geometry(WINDOW_SIZE)
 
 # List
 options = ["Combo", "Database", "Logs", "Mixed"]
@@ -155,10 +161,12 @@ date_increment_button.grid(padx=PAD_MAX, pady=PAD_MIN,row=0, column=1, sticky=tk
 buttonframe.grid(padx=PAD_MAX, pady=PAD_MIN,row=2, column=1, sticky=tk.W+tk.E)
 
 # Text Fields
-domein_label = tk.Label(root, text="Domein name(if exist): ")
+domein_label = tk.Label(root, text="Domein name(if exist)\Folder name: ")
 domein_label.grid(padx=PAD_MAX, pady=PAD_MIN,row=6, column=0, sticky=tk.W+tk.E)
 
-text_domein = tk.Entry(root,  width=30)
+
+domein_value = tk.StringVar()
+text_domein = tk.Entry(root,  width=30, textvariable=domein_value)
 text_domein.grid(padx=PAD_MAX, pady=PAD_MIN,row=6, column=1, sticky=tk.W+tk.E)
 
 readme_file_label = tk.Label(root, text="Readme File Content: ")
