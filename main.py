@@ -8,7 +8,7 @@ import shutil
 DEFAULT_DB_FOLDER = "E:\_WORK\TESTS"
 PAD_MAX = 10
 PAD_MIN = 5
-WINDOW_SIZE = "425x400"
+WINDOW_SIZE = "500x600"
 
 
 def submit():
@@ -42,7 +42,8 @@ def choose_file():
     file_path = filedialog.askopenfilename()
     file_path_var.set(file_path)
     file_name_label.config(text=file_path)
-    domein_value.set(file_path.split("/")[-1])
+    file_name, file_extension = os.path.splitext(os.path.basename(file_path))
+    domein_value.set(os.path.basename(file_name))
 
 
 def increment_date():
@@ -184,8 +185,14 @@ text_pass.grid(padx=PAD_MAX, pady=PAD_MIN, row=10, column=1, sticky=tk.W+tk.E)
 # text3 = tk.Text(root, height=2, width=30)
 # text3.pack()
 
+folder_label = tk.Label(root, text="Data Base(db) folder path: ")
+folder_label.grid(padx=PAD_MAX, pady=PAD_MIN, row=11, column=0, sticky=tk.W+tk.E)
+
+text_folder = tk.Entry(root,  width=30)
+text_folder.grid(padx=PAD_MAX, pady=PAD_MIN, row=11, column=1, sticky=tk.W+tk.E)
+
 # Submit button
 submit_button = tk.Button(root, text="Submit", command=submit)
-submit_button.grid(padx=PAD_MAX, pady=PAD_MIN,row=11, column=1, sticky=tk.W+tk.E)
+submit_button.grid(padx=PAD_MAX, pady=PAD_MIN,row=12, column=1, sticky=tk.W+tk.E)
 
 root.mainloop()
