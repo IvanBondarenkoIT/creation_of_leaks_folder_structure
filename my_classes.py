@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -93,7 +94,7 @@ class FileManagerApp:
         self.file_path_var.set(file_path)
         self.file_name_label.config(text=file_path)
         file_name, file_extension = os.path.splitext(os.path.basename(file_path))
-        self.domain_value.set(os.path.basename(file_name))
+        self.domein_value.set(os.path.basename(file_name))
 
     def increment_date(self):
         current_date = datetime.strptime(self.date_var.get(), "%Y-%m-%d")
@@ -126,8 +127,22 @@ class FileManagerApp:
         result_message = leak_name_folder
         messagebox.showinfo(title="Message", message="File replaced to: " + result_message)
 
+    def is_valid_folder_name(self, name):
+        # Define a regular expression for a valid folder name
+        # Valid folder name should not contain special characters like / \ : * ? " < > |
+        pattern = re.compile(r'^[^/\\:*?"<>|]+$')
+        return bool(pattern.match(name))
+
+    def clean_folder_name(self, name):
+        # Remove invalid characters from the folder name
+        return re.sub(r'[\\/:*?"<>|]', '', name)
+
     def if_directory_not_exist_create_new(self, folder_name):
         if not os.path.exists(folder_name):
+
+            if self.is_valid_folder_name(folder_name):
+                folder_name = self.clean_folder_name(folder_name)
+
             os.makedirs(folder_name)
 
     def create_directory_structure(self, selected_value, date_value, leak_name_value, pass_text, domain_text):

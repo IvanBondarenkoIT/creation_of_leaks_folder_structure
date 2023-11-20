@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from datetime import datetime, timedelta
+import re
 import os
 import shutil
 
@@ -58,8 +59,25 @@ def decrement_date():
     date_var.set(new_date.strftime("%Y-%m-%d"))
 
 
+def is_valid_folder_name(name):
+    # Define a regular expression for a valid folder name
+    # Valid folder name should not contain special characters like / \ : * ? " < > |
+    pattern = re.compile(r'^[^/\\:*?"<>|]+$')
+    return bool(pattern.match(name))
+
+
+def clean_folder_name(name):
+    # Remove invalid characters from the folder name
+    return re.sub(r'[\\/:*?"<>|]', '', name)
+
+
 def if_directory_not_exist_create_new(folder_name):
+
     if not os.path.exists(folder_name):
+
+        if is_valid_folder_name(folder_name):
+            folder_name = clean_folder_name(folder_name)
+
         os.makedirs(folder_name)
 
 
