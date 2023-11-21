@@ -203,11 +203,11 @@ text_pass.grid(padx=PAD_MAX, pady=PAD_MIN, row=10, column=1, sticky=tk.W+tk.E)
 # text3 = tk.Text(root, height=2, width=30)
 # text3.pack()
 
-folder_label = tk.Label(root, text="Data Base(db) folder path: ")
-folder_label.grid(padx=PAD_MAX, pady=PAD_MIN, row=11, column=0, sticky=tk.W+tk.E)
-
-text_folder = tk.Entry(root,  width=30)
-text_folder.grid(padx=PAD_MAX, pady=PAD_MIN, row=11, column=1, sticky=tk.W+tk.E)
+# folder_label = tk.Label(root, text="Data Base(db) folder path: ")
+# folder_label.grid(padx=PAD_MAX, pady=PAD_MIN, row=11, column=0, sticky=tk.W+tk.E)
+#
+# text_folder = tk.Entry(root,  width=30)
+# text_folder.grid(padx=PAD_MAX, pady=PAD_MIN, row=11, column=1, sticky=tk.W+tk.E)
 
 # Submit button
 submit_button = tk.Button(root, text="Submit", command=submit)
