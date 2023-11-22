@@ -16,7 +16,7 @@ class FileManagerApp:
     def __init__(self, master):
         self.master = master
         master.title("Leeks file manager")
-        master.geometry("500x600")
+        master.geometry("600x600")
 
         self.DEFAULT_DB_FOLDER = DEFAULT_DB_FOLDER
         self.db_folder = tk.StringVar(value=DEFAULT_DB_FOLDER)
@@ -25,6 +25,7 @@ class FileManagerApp:
 
         # Initialize variables
         self.selected_value = tk.StringVar(value="Combo")
+        self.flag = tk.BooleanVar(value=True)
         self.file_path_var = tk.StringVar()
         self.date_var = tk.StringVar(value=datetime.now().strftime("%Y-%m-%d"))
         self.domain_value = tk.StringVar()
@@ -37,6 +38,13 @@ class FileManagerApp:
 
         # Create widgets
         self.create_widgets()
+
+        # Bind the callback function to the text_topic_link variable
+        self.link_value.trace_add("write", self.update_topic_name)
+
+        # Create widgets
+        self.create_widgets()
+
 
     def create_widgets(self):
         # Listbox
@@ -53,6 +61,10 @@ class FileManagerApp:
 
         # self.listbox = tk.Listbox(self.master, height=4, listvariable=self.selected_value, selectmode=tk.SINGLE)
         # self.listbox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=0, rowspan=4, sticky=tk.W + tk.E)
+
+        # Flag
+        self.flag_checkbox = tk.Checkbutton(self.master, text="Is TG?", variable=self.flag)
+        self.flag_checkbox.grid(row=0, column=1)
 
         # File Chooser
         file_button = tk.Button(self.master, text="Choose File", command=self.choose_file)
@@ -120,6 +132,12 @@ class FileManagerApp:
         # Submit button
         submit_button = tk.Button(self.master, text="Submit", command=self.submit)
         submit_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=1, sticky=tk.W + tk.E)
+
+    def update_topic_name(self):
+        # Callback function to update text_topic_name when text_topic_link changes if TG flag=True
+        if self.flag:
+            new_value = self.link_value.get()
+            self.topic_value.set(new_value.replace(str(new_value.split("/")[-1]), ""))
 
     def choose_file(self):
         file_path = filedialog.askopenfilename()
