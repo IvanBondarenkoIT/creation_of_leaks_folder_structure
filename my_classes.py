@@ -16,7 +16,7 @@ class FileManagerApp:
     def __init__(self, master):
         self.master = master
         master.title("Leeks file manager")
-        master.geometry("600x600")
+        master.geometry("500x300")
 
         self.DEFAULT_DB_FOLDER = DEFAULT_DB_FOLDER
         self.db_folder = tk.StringVar(value=DEFAULT_DB_FOLDER)
@@ -24,6 +24,7 @@ class FileManagerApp:
         self.PAD_MIN = 5
 
         # Initialize variables
+        self.listbox = tk.Listbox(self.master, height=4)
         self.selected_value = tk.StringVar(value="Combo")
         self.flag = tk.BooleanVar(value=True)
         self.file_path_var = tk.StringVar()
@@ -42,6 +43,7 @@ class FileManagerApp:
         # Bind the callback function to the text_topic_link variable
         self.link_value.trace_add("write", self.update_topic_name)
 
+
         # Create widgets
         self.create_widgets()
 
@@ -51,7 +53,7 @@ class FileManagerApp:
 
         # List
         options = OPTIONS
-        self.listbox = tk.Listbox(self.master, height=4)
+
         for option in options:
             self.listbox.insert(tk.END, option)
         self.listbox.select_set(0)
@@ -63,8 +65,8 @@ class FileManagerApp:
         # self.listbox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=0, rowspan=4, sticky=tk.W + tk.E)
 
         # Flag
-        self.flag_checkbox = tk.Checkbutton(self.master, text="Is TG?", variable=self.flag)
-        self.flag_checkbox.grid(row=0, column=1)
+        flag_checkbox = tk.Checkbutton(self.master, text="Is TG?", variable=self.flag)
+        flag_checkbox.grid(row=0, column=1)
 
         # File Chooser
         file_button = tk.Button(self.master, text="Choose File", command=self.choose_file)
@@ -98,22 +100,22 @@ class FileManagerApp:
         domain_entry.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=6, column=1, sticky=tk.W + tk.E)
 
         # Link Entry
-        topic_link_label = tk.Label(self.master, text="Forum / TG link:")
+        topic_link_label = tk.Label(self.master, text="Forum link / TG link:")
         topic_link_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=0, sticky=tk.W + tk.E)
 
         text_topic_link = tk.Entry(self.master, width=30, textvariable=self.link_value)
         text_topic_link.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=1, sticky=tk.W + tk.E)
 
         # Topic Entry
-        topic_name_label = tk.Label(self.master, text="Topic name / TG channel name:")
+        topic_name_label = tk.Label(self.master, text="Topic name / TG channel:")
         topic_name_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=8, column=0, sticky=tk.W + tk.E)
 
         text_topic_name = tk.Entry(self.master, width=30, textvariable=self.topic_value)
         text_topic_name.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=8, column=1, sticky=tk.W + tk.E)
 
         # Text Readme
-        # text_readme = tk.Text(self.master, height=4, width=40)
-        # text_readme.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=9, column=0, columnspan=2, sticky=tk.W + tk.E)
+        # self.text_readme = tk.Text(self.master, height=4, width=60)
+        # self.text_readme.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=0, columnspan=2, sticky=tk.W + tk.E)
 
         # Password Entry
         pass_label = tk.Label(self.master, text="Password(if exist): ")
@@ -133,7 +135,7 @@ class FileManagerApp:
         submit_button = tk.Button(self.master, text="Submit", command=self.submit)
         submit_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=1, sticky=tk.W + tk.E)
 
-    def update_topic_name(self):
+    def update_topic_name(self, *args):
         # Callback function to update text_topic_name when text_topic_link changes if TG flag=True
         if self.flag:
             new_value = self.link_value.get()
