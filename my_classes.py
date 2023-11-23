@@ -13,12 +13,13 @@ OPTIONS = ["Combo", "Database", "Logs", "Mixed"]
 
 
 class FileManagerApp:
-    def __init__(self, master):
+    def __init__(self, master, work_folder):
         self.master = master
         master.title("Leeks file manager")
-        master.geometry("500x300")
+        master.geometry(WINDOW_SIZE)
 
-        self.DEFAULT_DB_FOLDER = DEFAULT_DB_FOLDER
+        # print(work_folder)
+        self.DEFAULT_DB_FOLDER = work_folder
         self.db_folder = tk.StringVar(value=DEFAULT_DB_FOLDER)
         self.PAD_MAX = 10
         self.PAD_MIN = 5
@@ -137,7 +138,7 @@ class FileManagerApp:
 
     def update_topic_name(self, *args):
         # Callback function to update text_topic_name when text_topic_link changes if TG flag=True
-        if self.flag:
+        if self.flag.get():
             new_value = self.link_value.get()
             self.topic_value.set(new_value.replace(str(new_value.split("/")[-1]), ""))
 
