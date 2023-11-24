@@ -107,6 +107,9 @@ class FileManagerApp:
         text_topic_link = tk.Entry(self.master, width=30, textvariable=self.link_value)
         text_topic_link.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=1, sticky=tk.W + tk.E)
 
+        link_button = tk.Button(self.master, text="+1", command=self.link_plus_one)
+        link_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=3, sticky=tk.W + tk.E)
+
         # Topic Entry
         topic_name_label = tk.Label(self.master, text="Topic name / TG channel:")
         topic_name_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=8, column=0, sticky=tk.W + tk.E)
@@ -158,6 +161,11 @@ class FileManagerApp:
         current_date = datetime.strptime(self.date_var.get(), "%Y-%m-%d")
         new_date = current_date - timedelta(days=1)
         self.date_var.set(new_date.strftime("%Y-%m-%d"))
+
+    def link_plus_one(self):
+        new_value = self.link_value.get()
+        link_number_plus_one = int(new_value.split("/")[-1]) + 1
+        self.link_value.set(new_value.replace(str(new_value.split("/")[-1]), f"{link_number_plus_one}"))
 
     def submit(self):
 
