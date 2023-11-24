@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 DEFAULT_DB_FOLDER = "E:\_WORK\db"
 PAD_MAX = 10
 PAD_MIN = 5
-WINDOW_SIZE = "500x600"
+WINDOW_SIZE = "530x600"
 OPTIONS = ["Combo", "Database", "Logs", "Mixed"]
 
 
@@ -97,14 +97,14 @@ class FileManagerApp:
         domain_label = tk.Label(self.master, text="Domain name(if exist)/Folder name: ")
         domain_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=6, column=0, sticky=tk.W + tk.E)
 
-        domain_entry = tk.Entry(self.master, width=30, textvariable=self.domain_value)
+        domain_entry = tk.Entry(self.master, width=40, textvariable=self.domain_value)
         domain_entry.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=6, column=1, sticky=tk.W + tk.E)
 
         # Link Entry
         topic_link_label = tk.Label(self.master, text="Forum link / TG link:")
         topic_link_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=0, sticky=tk.W + tk.E)
 
-        text_topic_link = tk.Entry(self.master, width=30, textvariable=self.link_value)
+        text_topic_link = tk.Entry(self.master, width=40, textvariable=self.link_value)
         text_topic_link.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=1, sticky=tk.W + tk.E)
 
         link_button = tk.Button(self.master, text="+1", command=self.link_plus_one)
@@ -114,7 +114,7 @@ class FileManagerApp:
         topic_name_label = tk.Label(self.master, text="Topic name / TG channel:")
         topic_name_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=8, column=0, sticky=tk.W + tk.E)
 
-        text_topic_name = tk.Entry(self.master, width=30, textvariable=self.topic_value)
+        text_topic_name = tk.Entry(self.master, width=40, textvariable=self.topic_value)
         text_topic_name.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=8, column=1, sticky=tk.W + tk.E)
 
         # Text Readme
@@ -125,7 +125,7 @@ class FileManagerApp:
         pass_label = tk.Label(self.master, text="Password(if exist): ")
         pass_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=10, column=0, sticky=tk.W + tk.E)
 
-        text_pass = tk.Entry(self.master, width=30, textvariable=self.password_value)
+        text_pass = tk.Entry(self.master, width=40, textvariable=self.password_value)
         text_pass.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=10, column=1, sticky=tk.W + tk.E)
 
         # Folder Entry
