@@ -9,4 +9,7 @@ class Settings:
         with open(self.work_folder_path, "r") as file:
             return file.read()
 
+    def set_work_folder_to_file(self, work_folder: str):
+        with open(self.work_folder_path, "w") as file:
+            return file.write(work_folder)
 

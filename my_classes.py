@@ -13,11 +13,12 @@ OPTIONS = ["Combo", "Database", "Logs", "Mixed"]
 
 
 class FileManagerApp:
-    def __init__(self, master, work_folder):
+    def __init__(self, master, work_folder, settings):
         self.master = master
         master.title("Leeks file manager")
         master.geometry(WINDOW_SIZE)
 
+        self.settings = settings
         # print(work_folder)
         self.DEFAULT_DB_FOLDER = work_folder
         self.db_folder = tk.StringVar(value=DEFAULT_DB_FOLDER)
