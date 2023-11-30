@@ -3,11 +3,12 @@ from tkinter import messagebox, filedialog
 import csv
 
 class DictEditorApp:
-    def __init__(self, root):
+    def __init__(self, root, source_file_name):
         self.root = root
         self.root.title("Dictionary Editor")
 
         self.my_dict = {}
+        self.source_file_name = source_file_name
 
         # Create Menu
         self.menu_bar = tk.Menu(self.root)
@@ -102,7 +103,7 @@ class DictEditorApp:
 
     def save_dict(self):
         # Save the dictionary to a CSV file
-        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        file_path = filedialog.asksaveasfilename(initialdir=".", defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
         if file_path:
             with open(file_path, "w", newline="") as csvfile:
                 csv_writer = csv.writer(csvfile)
@@ -110,9 +111,13 @@ class DictEditorApp:
                     csv_writer.writerow([key, value])
             messagebox.showinfo("Success", "Dictionary saved to CSV file.")
 
-    def load_dict(self):
+    def load_dict(self, first_load: bool = False):
         # Load the dictionary from a CSV file
-        file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+        if first_load:
+            file_path = self.source_file_name
+        else:
+            file_path = filedialog.askopenfilename(initialdir=".", filetypes=[("CSV files", "*.csv")])
+
         if file_path:
             self.my_dict = {}
             with open(file_path, "r") as csvfile:
@@ -123,6 +128,9 @@ class DictEditorApp:
                         self.my_dict[key] = value
             messagebox.showinfo("Success", "Dictionary loaded from CSV file.")
             self.update_key_menu()
+
+    def get_dict(self):
+        return self.my_dict
 
 if __name__ == "__main__":
     root = tk.Tk()

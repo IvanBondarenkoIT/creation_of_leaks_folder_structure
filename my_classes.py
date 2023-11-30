@@ -2,7 +2,7 @@ import os
 import re
 import shutil
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 from datetime import datetime, timedelta
 
 DEFAULT_DB_FOLDER = "E:\_WORK\db"
@@ -13,12 +13,13 @@ OPTIONS = ["Combo", "Database", "Logs", "Mixed"]
 
 
 class FileManagerApp:
-    def __init__(self, master, work_folder, settings):
+    def __init__(self, master, work_folder, settings, work_links: dict):
         self.master = master
         master.title("Leeks file manager")
         master.geometry(WINDOW_SIZE)
 
         self.settings = settings
+        self.work_links = work_links
         # print(work_folder)
         self.DEFAULT_DB_FOLDER = work_folder
         self.db_folder = tk.StringVar(value=DEFAULT_DB_FOLDER)
@@ -67,7 +68,7 @@ class FileManagerApp:
         # self.listbox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=0, rowspan=4, sticky=tk.W + tk.E)
 
         # Flag
-        flag_checkbox = tk.Checkbutton(self.master, text="Is TG?", variable=self.flag)
+        flag_checkbox = tk.Checkbutton(self.master, text="Autofill", variable=self.flag)
         flag_checkbox.grid(row=0, column=1)
 
         # File Chooser
@@ -139,6 +140,17 @@ class FileManagerApp:
         # Submit button
         submit_button = tk.Button(self.master, text="Submit", command=self.submit)
         submit_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=1, sticky=tk.W + tk.E)
+
+        # Combo box
+        languages_var = tk.StringVar(value="Choice sourse:")
+        label = ttk.Label(textvariable=languages_var)
+        label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=0, sticky=tk.W + tk.E)
+
+        work_links_keys = list(self.work_links.keys())
+        print(work_links_keys)
+
+        combobox = ttk.Combobox(textvariable=languages_var, values=work_links_keys)
+        combobox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=1, sticky=tk.W + tk.E)
 
     def update_topic_name(self, *args):
         # Callback function to update text_topic_name when text_topic_link changes if TG flag=True
