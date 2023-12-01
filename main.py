@@ -8,7 +8,9 @@ if __name__ == "__main__":
     settings = Settings()
     work_folder = settings.get_work_folder_from_file()
 
-    dict_editor = DictEditorApp(root, settings.get_default_sources_file_name())
+    dict_editor = DictEditorApp(root,
+                                source_file_name=settings.get_default_sources_file_name())
+
     dict_editor.load_dict(first_load=True)
 
     app = FileManagerApp(root,

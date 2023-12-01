@@ -28,6 +28,7 @@ class FileManagerApp:
 
         # Initialize variables
         self.listbox = tk.Listbox(self.master, height=4)
+
         self.selected_value = tk.StringVar(value="Combo")
         self.flag = tk.BooleanVar(value=True)
         self.file_path_var = tk.StringVar()
@@ -40,11 +41,14 @@ class FileManagerApp:
         self.readme_value = tk.StringVar()
         self.password_value = tk.StringVar()
 
+        self.combobox_value = tk.StringVar()
+
         # Create widgets
         self.create_widgets()
 
         # Bind the callback function to the text_topic_link variable
         self.link_value.trace_add("write", self.update_topic_name)
+        self.combobox_value.trace_add("write", self.update_topic_name_by_combobox)
 
 
         # Create widgets
@@ -142,14 +146,14 @@ class FileManagerApp:
         submit_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=1, sticky=tk.W + tk.E)
 
         # Combo box
-        languages_var = tk.StringVar(value="Choice sourse:")
-        label = ttk.Label(textvariable=languages_var)
+
+        label = ttk.Label(textvariable=self.combobox_value)
         label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=0, sticky=tk.W + tk.E)
 
         work_links_keys = list(self.work_links.keys())
         print(work_links_keys)
 
-        combobox = ttk.Combobox(textvariable=languages_var, values=work_links_keys)
+        combobox = ttk.Combobox(textvariable=self.combobox_value, values=work_links_keys)
         combobox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=1, sticky=tk.W + tk.E)
 
     def update_topic_name(self, *args):
@@ -157,6 +161,10 @@ class FileManagerApp:
         if self.flag.get():
             new_value = self.link_value.get()
             self.topic_value.set(new_value.replace(str(new_value.split("/")[-1]), ""))
+
+    def update_topic_name_by_combobox(self, *args):
+        new_value = self.work_links[self.combobox_value.get()]
+        self.topic_value.set(new_value)
 
     def choose_file(self):
         file_path = filedialog.askopenfilename()
