@@ -141,20 +141,21 @@ class FileManagerApp:
         # text_folder = tk.Entry(self.master, width=30, textvariable=self.db_folder)
         # text_folder.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=11, column=1, sticky=tk.W + tk.E)
 
-        # Submit button
-        submit_button = tk.Button(self.master, text="Submit", command=self.submit)
-        submit_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=1, sticky=tk.W + tk.E)
-
         # Combo box
 
-        label = ttk.Label(textvariable=self.combobox_value)
-        label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=0, sticky=tk.W + tk.E)
+        label = tk.Label(self.master, text="Choose source: ")
+        label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=0, sticky=tk.W + tk.E)
 
         work_links_keys = list(self.work_links.keys())
-        print(work_links_keys)
+        # print(work_links_keys)
 
         combobox = ttk.Combobox(textvariable=self.combobox_value, values=work_links_keys)
-        combobox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=1, sticky=tk.W + tk.E)
+        combobox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=1, sticky=tk.W + tk.E)
+
+        # Submit button
+        submit_button = tk.Button(self.master, text="Submit", command=self.submit)
+        submit_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=1, sticky=tk.W + tk.E)
+
 
     def update_topic_name(self, *args):
         # Callback function to update text_topic_name when text_topic_link changes if TG flag=True
