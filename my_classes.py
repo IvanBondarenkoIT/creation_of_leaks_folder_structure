@@ -18,7 +18,6 @@ class FileManagerApp:
     def __init__(self, master, work_folder, settings, work_links: dict, messages: dict):
         self.messages = messages
         print(self.messages)
-        # self.filnames_in_messages =
 
         self.master = master
         master.title("Leeks file manager")
@@ -269,7 +268,7 @@ class FileManagerApp:
 
     def clean_folder_name(self, name):
         # Remove invalid characters from the folder name
-        return re.sub(r'[\\/:*?"<>|]', "", name)
+        return re.sub(r'[\\/:*?"<>| ]', "", name)
 
     def if_directory_not_exist_create_new(self, folder_name):
         if not os.path.exists(folder_name):
