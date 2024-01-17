@@ -5,7 +5,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from datetime import datetime, timedelta
 
-from json_reader import Message
+from json_reader import Message, Messages
+
 
 DEFAULT_DB_FOLDER = "E:\_WORK\db"
 PAD_MAX = 10
@@ -15,7 +16,14 @@ OPTIONS = ["Combo", "Database", "Logs", "Mixed"]
 
 
 class FileManagerApp:
-    def __init__(self, master, work_folder, settings, work_links: dict, messages: dict):
+    def __init__(
+        self,
+        master,
+        work_folder,
+        settings,
+        work_links: dict,
+        messages: dict[str, Message],
+    ):
         self.messages = messages
         print(self.messages)
 
@@ -36,9 +44,15 @@ class FileManagerApp:
 
         self.selected_value = tk.StringVar(value="Combo")
         self.flag = tk.BooleanVar(value=True)
-        self.file_path_var = tk.StringVar()
+
         self.date_var = tk.StringVar(value=datetime.now().strftime("%Y-%m-%d"))
         self.domain_value = tk.StringVar()
+
+        self.file_path_var = tk.StringVar()
+        self.file_name_label = tk.Label(self.master, text="")
+
+        self.messages_file_path_var = tk.StringVar()
+        self.messages_file_path_label = tk.Label(self.master, text="")
 
         self.link_value = tk.StringVar()
         self.topic_value = tk.StringVar()
@@ -80,7 +94,7 @@ class FileManagerApp:
         flag_checkbox = tk.Checkbutton(self.master, text="Autofill", variable=self.flag)
         flag_checkbox.grid(row=0, column=1)
 
-        # File Chooser
+        # Content File Chooser
         file_button = tk.Button(
             self.master, text="Choose File", command=self.choose_file
         )
@@ -88,7 +102,6 @@ class FileManagerApp:
             padx=self.PAD_MAX, pady=self.PAD_MIN, row=4, column=0, sticky=tk.W + tk.E
         )
 
-        self.file_name_label = tk.Label(self.master, text="")
         self.file_name_label.grid(
             padx=self.PAD_MAX, pady=self.PAD_MIN, row=4, column=1, sticky=tk.W + tk.E
         )
@@ -199,10 +212,22 @@ class FileManagerApp:
             padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=1, sticky=tk.W + tk.E
         )
 
+        # Messages File Chooser
+        chose_messages_file_button = tk.Button(
+            self.master, text="JSON messages File", command=self.choose_messages_file
+        )
+        chose_messages_file_button.grid(
+            padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=0, sticky=tk.W + tk.E
+        )
+
+        self.messages_file_path_label.grid(
+            padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=1, sticky=tk.W + tk.E
+        )
+
         # Submit button
         submit_button = tk.Button(self.master, text="Submit", command=self.submit)
         submit_button.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=1, sticky=tk.W + tk.E
+            padx=self.PAD_MAX, pady=self.PAD_MIN, row=15, column=1, sticky=tk.W + tk.E
         )
 
     def update_topic_name(self, *args):
@@ -214,6 +239,14 @@ class FileManagerApp:
     def update_topic_name_by_combobox(self, *args):
         new_value = self.work_links[self.combobox_value.get()]
         self.topic_value.set(new_value)
+
+    def choose_messages_file(self):
+        messages_file_path = filedialog.askopenfilename()
+        self.messages_file_path_var.set(messages_file_path)
+        self.messages_file_path_label.config(text=messages_file_path)
+        if messages_file_path:
+            messages = Messages(file_path=messages_file_path)
+            self.messages = messages.get_messages()
 
     def choose_file(self):
         file_path = filedialog.askopenfilename()
@@ -232,7 +265,8 @@ class FileManagerApp:
             new_value = self.link_value.get()
             self.link_value.set(
                 new_value.replace(
-                    str(new_value.split("/")[-1]), str(self.messages[file_name + file_extension].id)
+                    str(new_value.split("/")[-1]),
+                    str(self.messages[file_name + file_extension].id),
                 )
             )
 
