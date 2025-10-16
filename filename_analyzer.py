@@ -222,13 +222,15 @@ class FilenameAnalyzer:
     
     def extract_domain_from_filename(self, filename: str) -> Optional[str]:
         """
-        Extract domain from complex filenames with countries, dates, etc.
+        Extract domain from complex filenames with MAXIMUM attention to find hidden domains.
         
         Examples:
             teamlease.com (india) → teamlease.com
             bestbuy.ca → bestbuy.ca
             Blibli.com-indonasia → Blibli.com
             Lebanon locatefamily_com 2022.05.04 (21 792) → locatefamily.com
+            amazon_com_leak → amazon.com
+            paypal.com users (2024) → paypal.com
             
         Args:
             filename: Raw filename
@@ -239,24 +241,49 @@ class FilenameAnalyzer:
         # Remove file extension
         name = re.sub(r'\.[^.]+$', '', filename)
         
-        # Try to find domain.extension pattern (with dots)
-        # Match: word.com, word.co.uk, word.net, etc.
-        domain_with_dots = re.search(r'\b([a-zA-Z0-9-]+\.(?:com|net|org|io|co|uk|us|ca|de|fr|ru|in|id))\b', name, re.IGNORECASE)
+        # Extended list of domain extensions - using capturing group
+        extensions = r'(com|net|org|io|co|uk|us|ca|de|fr|ru|in|id|au|nl|br|mx|es|it|ch|se|no|dk|fi|be|at|pl|cz|gr|pt|tr|ae|sa|za|nz|sg|hk|tw|kr|jp|cn|vn|th|my|ph)'
+        
+        # PRIORITY 1: Full domain.extension pattern (with dots) - most reliable
+        # Match: word.com, word.co.uk, site.net anywhere in filename
+        domain_with_dots = re.search(rf'\b([a-zA-Z0-9-]+\.{extensions})\b', name, re.IGNORECASE)
         if domain_with_dots:
             return domain_with_dots.group(1)
         
-        # Try to find domain_extension pattern (with underscore)
-        # Match: domain_com, domain_net, etc.
-        domain_underscore = re.search(r'\b([a-zA-Z0-9-]+)_(com|net|org|io|co|uk|us|ca|de|fr|ru|in|id)\b', name, re.IGNORECASE)
+        # PRIORITY 2: domain_extension pattern (with underscore)
+        # Match: domain_com, domain_net, paypal_com, etc.
+        domain_underscore = re.search(rf'\b([a-zA-Z0-9-]+)_{extensions}\b', name, re.IGNORECASE)
         if domain_underscore:
             # Convert underscore to dot: domain_com → domain.com
             return f"{domain_underscore.group(1)}.{domain_underscore.group(2)}"
         
-        # Look for domain patterns at the start of filename
-        # Match: bestbuy.ca, amazon.com, etc. even with extra text
-        start_domain = re.match(r'^([a-zA-Z0-9-]+\.(?:com|net|org|io|co|uk|us|ca|de|fr|ru|in|id))', name, re.IGNORECASE)
+        # PRIORITY 3: domain-extension pattern (with dash)
+        # Match: domain-com, site-net, etc.
+        domain_dash = re.search(rf'\b([a-zA-Z0-9]+)-{extensions}\b', name, re.IGNORECASE)
+        if domain_dash:
+            # Convert dash to dot: domain-com → domain.com
+            return f"{domain_dash.group(1)}.{domain_dash.group(2)}"
+        
+        # PRIORITY 4: Look for domain at the start of filename
+        # Match: bestbuy.ca, amazon.com at the beginning
+        start_domain = re.match(rf'^([a-zA-Z0-9-]+\.{extensions})', name, re.IGNORECASE)
         if start_domain:
             return start_domain.group(1)
+        
+        # PRIORITY 5: Try to find patterns like "domaincom" (no separator)
+        # This is less reliable, so check if it's a known company
+        domain_nosep = re.search(rf'\b([a-zA-Z0-9]+)({extensions})\b', name, re.IGNORECASE)
+        if domain_nosep:
+            potential_domain = domain_nosep.group(1)
+            # Only accept if it's a known company to avoid false positives
+            if potential_domain.lower() in self.company_indicators:
+                ext = domain_nosep.group(2)
+                return f"{potential_domain}.{ext}"
+        
+        # PRIORITY 6: Look for URLs with http/https
+        url_match = re.search(r'https?://(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+)', name, re.IGNORECASE)
+        if url_match:
+            return url_match.group(1)
         
         return None
 

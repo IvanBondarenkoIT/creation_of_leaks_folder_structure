@@ -293,25 +293,35 @@ class FileManagerApp:
             analysis = self.filename_analyzer.analyze_filename(full_file_name)
             category = analysis.suggested_category
             
-            # For Database: try to extract clean domain with extension
+            # For Database: MUST extract domain, otherwise convert to Combo
             if category == "Database":
                 # First try to extract domain.com format from filename
                 extracted_domain = self.filename_analyzer.extract_domain_from_filename(full_file_name)
+                
                 if extracted_domain:
+                    # Successfully extracted domain - keep as Database
                     domain = extracted_domain  # Keep dots: teamlease.com, bestbuy.ca, etc.
+                    analysis_info = f"Auto: Database with domain '{extracted_domain}' (conf: {analysis.confidence})"
                 elif analysis.domain_name and analysis.confidence in ['high', 'medium']:
-                    # Fallback to detected domain
-                    domain = self.filename_analyzer.extract_clean_domain_name(analysis.domain_name)
-                    if not domain:
+                    # Fallback to detected domain from analysis
+                    clean_domain = self.filename_analyzer.extract_clean_domain_name(analysis.domain_name)
+                    if clean_domain:
+                        domain = clean_domain
+                        analysis_info = f"Auto: Database with domain '{clean_domain}' (conf: {analysis.confidence})"
+                    else:
+                        # Can't extract domain - downgrade to Combo
+                        category = "Combo"
                         domain = file_name_only
+                        analysis_info = f"Auto: No domain found, switched to Combo (was: {analysis.reason})"
                 else:
+                    # No domain found - downgrade to Combo
+                    category = "Combo"
                     domain = file_name_only
+                    analysis_info = f"Auto: No domain found, switched to Combo (was: {analysis.reason})"
             else:
                 # For Combo: use filename as is
                 domain = file_name_only
-            
-            # Store analysis info for display in preview
-            analysis_info = f"Auto: {analysis.reason} (conf: {analysis.confidence})"
+                analysis_info = f"Auto: {analysis.reason} (conf: {analysis.confidence})"
         else:
             # Manual mode or override
             category = base_category if base_category else self.combobox.get()

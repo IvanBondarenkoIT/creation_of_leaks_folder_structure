@@ -22,6 +22,13 @@ def test_domain_extraction():
         ("aliexpress.ru - russia.txt", "aliexpress.ru"),
         ("flipkart.in india ecommerce.txt", "flipkart.in"),
         ("tokopedia.id indonesia.txt", "tokopedia.id"),
+        # Additional complex cases
+        ("amazon-com-leak.txt", "amazon.com"),  # dash separator
+        ("paypal-net-users.txt", "paypal.net"),
+        ("site_org_backup.txt", "site.org"),
+        ("https://example.com/leak.txt", "example.com"),  # URL
+        ("company.co.uk (UK).txt", "company.co.uk"),
+        ("database_nl_2024.txt", "database.nl"),
     ]
     
     print("=" * 80)
