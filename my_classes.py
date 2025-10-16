@@ -7,8 +7,7 @@ from datetime import datetime, timedelta
 
 from json_reader import Message, Messages
 
-
-DEFAULT_DB_FOLDER = "E:\_WORK\db"
+DEFAULT_DB_FOLDER = "E:\\_WORK\\db"
 PAD_MAX = 10
 PAD_MIN = 5
 WINDOW_SIZE = "530x600"
@@ -16,32 +15,22 @@ OPTIONS = ["Combo", "Database", "Logs", "Mixed"]
 
 
 class FileManagerApp:
-    def __init__(
-        self,
-        master,
-        work_folder,
-        settings,
-        work_links: dict,
-        messages: dict[str, Message],
-    ):
-        self.messages = messages
+    def __init__(self, master, work_folder=DEFAULT_DB_FOLDER, settings=None, work_links: dict = None, messages: dict[str, Message] = None):
+        self.messages = messages or {}
         print(self.messages)
 
         self.master = master
         master.title("Leeks file manager")
         master.geometry(WINDOW_SIZE)
 
-        self.settings = settings
-        self.work_links = work_links
-        # print(work_folder)
+        self.settings = settings or {}
+        self.work_links = work_links or {}
         self.DEFAULT_DB_FOLDER = work_folder
         self.db_folder = tk.StringVar(value=DEFAULT_DB_FOLDER)
         self.PAD_MAX = 10
         self.PAD_MIN = 5
 
         # Initialize variables
-        self.listbox = tk.Listbox(self.master, height=4)
-
         self.selected_value = tk.StringVar(value="Combo")
         self.flag = tk.BooleanVar(value=True)
 
@@ -69,169 +58,83 @@ class FileManagerApp:
         self.link_value.trace_add("write", self.update_topic_name)
         self.combobox_value.trace_add("write", self.update_topic_name_by_combobox)
 
-        # Create widgets
-        self.create_widgets()
-
     def create_widgets(self):
-        # Listbox
+        combobox_label = tk.Label(self.master, text="Select Option:")
+        combobox_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=0, sticky=tk.W)
 
-        # List
-        options = OPTIONS
+        self.combobox = ttk.Combobox(self.master, textvariable=self.selected_value, values=OPTIONS, state="readonly")
+        self.combobox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=1, sticky=tk.W + tk.E)
+        self.combobox.current(0)
+        self.combobox.grid(row=1, column=0)
 
-        for option in options:
-            self.listbox.insert(tk.END, option)
-        self.listbox.select_set(0)
-        # print(listbox.get(tk.ACTIVE))
-        self.listbox.grid(
-            padx=PAD_MAX, pady=PAD_MIN, row=0, column=0, rowspan=4, sticky=tk.W + tk.E
-        )
-        # listbox.pack(padx=20, pady=20, )
-
-        # self.listbox = tk.Listbox(self.master, height=4, listvariable=self.selected_value, selectmode=tk.SINGLE)
-        # self.listbox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=0, rowspan=4, sticky=tk.W + tk.E)
-
-        # Flag
         flag_checkbox = tk.Checkbutton(self.master, text="Autofill", variable=self.flag)
         flag_checkbox.grid(row=0, column=1)
 
-        # Content File Chooser
-        file_button = tk.Button(
-            self.master, text="Choose File", command=self.choose_file
-        )
-        file_button.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=4, column=0, sticky=tk.W + tk.E
-        )
+        file_button = tk.Button(self.master, text="Choose File", command=self.choose_file)
+        file_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=4, column=0, sticky=tk.W + tk.E)
+        self.file_name_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=4, column=1, sticky=tk.W + tk.E)
 
-        self.file_name_label.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=4, column=1, sticky=tk.W + tk.E
-        )
-
-        # Date Field (YYYY-MM-DD)
         date_entry = tk.Entry(self.master, textvariable=self.date_var)
-        date_entry.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=1, column=1, sticky=tk.W + tk.E
-        )
+        date_entry.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=1, column=1, sticky=tk.W + tk.E)
 
-        # Date Increment and Decrement Buttons
         buttonframe = tk.Frame(self.master)
         buttonframe.columnconfigure(0, weight=1)
         buttonframe.columnconfigure(1, weight=1)
 
-        date_decrement_button = tk.Button(
-            buttonframe, text="<", command=self.decrement_date
-        )
-        date_decrement_button.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=0, sticky=tk.W + tk.E
-        )
+        date_decrement_button = tk.Button(buttonframe, text="<", command=self.decrement_date)
+        date_decrement_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=0, sticky=tk.W + tk.E)
 
-        date_increment_button = tk.Button(
-            buttonframe, text=">", command=self.increment_date
-        )
-        date_increment_button.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=1, sticky=tk.W + tk.E
-        )
+        date_increment_button = tk.Button(buttonframe, text=">", command=self.increment_date)
+        date_increment_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=0, column=1, sticky=tk.W + tk.E)
 
-        buttonframe.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=2, column=1, sticky=tk.W + tk.E
-        )
+        buttonframe.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=2, column=1, sticky=tk.W + tk.E)
 
-        # Domain Entry
         domain_label = tk.Label(self.master, text="Domain name(if exist)/Folder name: ")
-        domain_label.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=6, column=0, sticky=tk.W + tk.E
-        )
+        domain_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=6, column=0, sticky=tk.W + tk.E)
 
         domain_entry = tk.Entry(self.master, width=40, textvariable=self.domain_value)
-        domain_entry.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=6, column=1, sticky=tk.W + tk.E
-        )
+        domain_entry.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=6, column=1, sticky=tk.W + tk.E)
 
-        # Link Entry
         topic_link_label = tk.Label(self.master, text="Forum link / TG link:")
-        topic_link_label.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=0, sticky=tk.W + tk.E
-        )
+        topic_link_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=0, sticky=tk.W + tk.E)
 
         text_topic_link = tk.Entry(self.master, width=40, textvariable=self.link_value)
-        text_topic_link.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=1, sticky=tk.W + tk.E
-        )
+        text_topic_link.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=1, sticky=tk.W + tk.E)
 
         link_button = tk.Button(self.master, text="+1", command=self.link_plus_one)
-        link_button.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=3, sticky=tk.W + tk.E
-        )
+        link_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=7, column=3, sticky=tk.W + tk.E)
 
-        # Topic Entry
         topic_name_label = tk.Label(self.master, text="Topic name / TG channel:")
-        topic_name_label.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=8, column=0, sticky=tk.W + tk.E
-        )
+        topic_name_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=8, column=0, sticky=tk.W + tk.E)
 
         text_topic_name = tk.Entry(self.master, width=40, textvariable=self.topic_value)
-        text_topic_name.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=8, column=1, sticky=tk.W + tk.E
-        )
+        text_topic_name.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=8, column=1, sticky=tk.W + tk.E)
 
-        # Text Readme
-        # self.text_readme = tk.Text(self.master, height=4, width=60)
-        # self.text_readme.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=0, columnspan=2, sticky=tk.W + tk.E)
-
-        # Password Entry
         pass_label = tk.Label(self.master, text="Password(if exist): ")
-        pass_label.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=10, column=0, sticky=tk.W + tk.E
-        )
+        pass_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=10, column=0, sticky=tk.W + tk.E)
 
         text_pass = tk.Entry(self.master, width=40, textvariable=self.password_value)
-        text_pass.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=10, column=1, sticky=tk.W + tk.E
-        )
-
-        # Folder Entry
-        # folder_label = tk.Label(self.master, text="Data Base(db) folder path: ")
-        # folder_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=11, column=0, sticky=tk.W + tk.E)
-        #
-        # text_folder = tk.Entry(self.master, width=30, textvariable=self.db_folder)
-        # text_folder.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=11, column=1, sticky=tk.W + tk.E)
-
-        # Combo box
+        text_pass.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=10, column=1, sticky=tk.W + tk.E)
 
         label = tk.Label(self.master, text="Choose source: ")
-        label.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=0, sticky=tk.W + tk.E
-        )
+        label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=0, sticky=tk.W + tk.E)
 
         work_links_keys = list(self.work_links.keys())
-        # print(work_links_keys)
+        combobox = ttk.Combobox(textvariable=self.combobox_value, values=work_links_keys)
+        combobox.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=1, sticky=tk.W + tk.E)
 
-        combobox = ttk.Combobox(
-            textvariable=self.combobox_value, values=work_links_keys
-        )
-        combobox.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=12, column=1, sticky=tk.W + tk.E
-        )
+        chose_messages_file_button = tk.Button(self.master, text="JSON messages File", command=self.choose_messages_file)
+        chose_messages_file_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=0, sticky=tk.W + tk.E)
 
-        # Messages File Chooser
-        chose_messages_file_button = tk.Button(
-            self.master, text="JSON messages File", command=self.choose_messages_file
-        )
-        chose_messages_file_button.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=0, sticky=tk.W + tk.E
-        )
+        self.messages_file_path_label.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=1, sticky=tk.W + tk.E)
 
-        self.messages_file_path_label.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=13, column=1, sticky=tk.W + tk.E
-        )
-
-        # Submit button
         submit_button = tk.Button(self.master, text="Submit", command=self.submit)
-        submit_button.grid(
-            padx=self.PAD_MAX, pady=self.PAD_MIN, row=15, column=1, sticky=tk.W + tk.E
-        )
+        submit_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=15, column=1, sticky=tk.W + tk.E)
+
+        chain_submit_button = tk.Button(self.master, text="Chain Submit", command=self.chain_submit)
+        chain_submit_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=16, column=1, sticky=tk.W + tk.E)
 
     def update_topic_name(self, *args):
-        # Callback function to update text_topic_name when text_topic_link changes if TG flag=True
         if self.flag.get():
             new_value = self.link_value.get()
             self.topic_value.set(new_value.replace(str(new_value.split("/")[-1]), ""))
@@ -258,16 +161,11 @@ class FileManagerApp:
         if file_name + file_extension in self.messages.keys():
             print(self.messages[file_name + file_extension])
 
-            # https://t.me/mailaccessmegacloud/3487
-
             self.date_var.set(self.messages[file_name + file_extension].date)
 
             new_value = self.link_value.get()
             self.link_value.set(
-                new_value.replace(
-                    str(new_value.split("/")[-1]),
-                    str(self.messages[file_name + file_extension].id),
-                )
+                new_value.replace(str(new_value.split("/")[-1]), str(self.messages[file_name + file_extension].id))
             )
 
     def increment_date(self):
@@ -283,38 +181,31 @@ class FileManagerApp:
     def link_plus_one(self):
         new_value = self.link_value.get()
         link_number_plus_one = int(new_value.split("/")[-1]) + 1
-        self.link_value.set(
-            new_value.replace(str(new_value.split("/")[-1]), f"{link_number_plus_one}")
-        )
+        self.link_value.set(new_value.replace(str(new_value.split("/")[-1]), f"{link_number_plus_one}"))
 
     def submit(self):
         leak_name_folder = self.create_directory_structure()
         self.remove_file_to_leak_folder(leak_name_folder)
-        messagebox.showinfo(
-            title="Message", message="File replaced to: " + leak_name_folder
-        )
+        messagebox.showinfo(title="Message", message="File replaced to: " + leak_name_folder)
 
     def is_valid_folder_name(self, name):
-        # Define a regular expression for a valid folder name
-        # Valid folder name should not contain special characters like / \ : * ? " < > |
         pattern = re.compile(r'^[^/\\:*?"<>|]+$')
         return bool(pattern.match(name))
 
     def clean_folder_name(self, name):
-        # Remove invalid characters from the folder name
         return re.sub(r'[\\/:*?"<>| ]', "", name)
 
     def if_directory_not_exist_create_new(self, folder_name):
         if not os.path.exists(folder_name):
             if self.is_valid_folder_name(folder_name):
                 folder_name = self.clean_folder_name(folder_name)
-
             os.makedirs(folder_name)
 
     def create_directory_structure(self):
-        selected = self.listbox.get(tk.ACTIVE)
-        domain_text = self.domain_value.get()
-        leak_name_value = f"{self.topic_value.get()}\n{self.link_value.get()}\n"
+        selected = self.combobox.get()
+        domain_text = self.domain_value.get().strip()  # Trim leading/trailing spaces
+        topic_text = self.topic_value.get().strip()    # Trim leading/trailing spaces
+        leak_name_value = f"{topic_text}\n{self.link_value.get()}\n"
         pass_text = self.password_value.get()
 
         db_folder = self.DEFAULT_DB_FOLDER
@@ -323,7 +214,7 @@ class FileManagerApp:
         if domain_text:
             leak_name_folder = os.path.join(date_folder, domain_text)
         else:
-            leak_name_folder = os.path.join(date_folder, self.topic_value.get())
+            leak_name_folder = os.path.join(date_folder, topic_text)
 
         self.if_directory_not_exist_create_new(db_folder)
         self.if_directory_not_exist_create_new(listbox_folder)
@@ -332,17 +223,13 @@ class FileManagerApp:
 
         readme_file = os.path.join(leak_name_folder, "readme.txt")
 
-        # Clear file
         with open(readme_file, "w"):
-            pass  # Do nothing
+            pass
 
-        # Create an empty readme file
         with open(readme_file, "w") as file:
-            if domain_text and self.listbox.get(tk.ACTIVE) == "Database":
+            if domain_text and selected == "Database":
                 file.write(domain_text + "\n")
-
             file.write(leak_name_value)
-
             if pass_text:
                 file.write(pass_text)
 
@@ -351,6 +238,34 @@ class FileManagerApp:
     def remove_file_to_leak_folder(self, leak_name_folder):
         if os.path.exists(self.file_path_var.get()):
             shutil.move(self.file_path_var.get(), leak_name_folder)
+
+    def chain_submit(self):
+        folder_path = filedialog.askdirectory(title="Choose Folder with Files")
+        if not folder_path:
+            return
+
+        for file_name in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, file_name)
+            if os.path.isfile(file_path):
+                self.file_path_var.set(file_path)
+                self.file_name_label.config(text=file_path)
+
+                file_name_only, file_extension = os.path.splitext(os.path.basename(file_path))
+                self.domain_value.set(os.path.basename(file_name_only))
+
+                full_file_name = file_name_only + file_extension
+                if full_file_name in self.messages:
+                    msg = self.messages[full_file_name]
+                    self.date_var.set(msg.date)
+                    new_value = self.link_value.get()
+                    self.link_value.set(
+                        new_value.replace(str(new_value.split("/")[-1]), str(msg.id))
+                    )
+
+                leak_name_folder = self.create_directory_structure()
+                self.remove_file_to_leak_folder(leak_name_folder)
+
+        messagebox.showinfo(title="Chain Submit", message="All files processed.")
 
 
 if __name__ == "__main__":

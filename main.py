@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     dict_editor.load_dict(first_load=True)
 
-    messages = Messages(file_path="Z:\_DM\_Downloads\TEST\esult.json")
+    messages = Messages(file_path="D:\_DM\_Downloads\TEST\esult.json")
 
     app = FileManagerApp(root,
                          work_folder=work_folder,

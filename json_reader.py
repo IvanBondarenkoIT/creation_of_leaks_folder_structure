@@ -6,11 +6,17 @@ class Message:
     def __init__(self, message_data):
         self.id = message_data["id"]
         self.type = message_data["type"]
-        self.date = datetime.utcfromtimestamp(
-            int(message_data["date_unixtime"])
-        ).strftime("%Y-%m-%d")
+        try:
+            self.date = datetime.utcfromtimestamp(
+                int(message_data["date_unixtime"])
+            ).strftime("%Y-%m-%d")
+        except KeyError:
+            self.date = "Unknown Date"
         # self.date = message_data["date_unixtime"]
-        self.from_user = message_data["from"]
+        try:
+            self.from_user = message_data["from"]
+        except:
+            self.from_user = ""
         self.file = message_data.get("file", None)
         self.text = message_data.get("text", None)
 
@@ -28,7 +34,6 @@ class Messages:
         with open(file_path, "r", encoding="utf8") as file:
             data = json.load(file)
 
-
         # Extract messages
         messages_data = data["messages"]
 
@@ -40,4 +45,8 @@ class Messages:
         #     print(message)
 
     def get_messages(self):
-        return {message.get_filename().replace("files/", ""): message for message in self.messages if message.file}
+        return {
+            message.get_filename().replace("files/", ""): message
+            for message in self.messages
+            if message.file
+        }
