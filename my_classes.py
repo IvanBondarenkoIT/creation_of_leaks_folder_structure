@@ -6,6 +6,7 @@ from tkinter import filedialog, messagebox, ttk
 from datetime import datetime, timedelta
 
 from json_reader import Message, Messages
+from preview_window import PreviewWindow, FilePreviewData
 
 DEFAULT_DB_FOLDER = "E:\\_WORK\\db"
 PAD_MAX = 10
@@ -134,6 +135,11 @@ class FileManagerApp:
         chain_submit_button = tk.Button(self.master, text="Chain Submit", command=self.chain_submit)
         chain_submit_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=16, column=1, sticky=tk.W + tk.E)
 
+        chain_submit_preview_button = tk.Button(self.master, text="Chain Submit (Preview)", 
+                                                 command=self.chain_submit_with_preview,
+                                                 bg='#3498db', fg='white', font=('Arial', 10, 'bold'))
+        chain_submit_preview_button.grid(padx=self.PAD_MAX, pady=self.PAD_MIN, row=17, column=1, sticky=tk.W + tk.E)
+
     def update_topic_name(self, *args):
         if self.flag.get():
             new_value = self.link_value.get()
@@ -238,6 +244,187 @@ class FileManagerApp:
     def remove_file_to_leak_folder(self, leak_name_folder):
         if os.path.exists(self.file_path_var.get()):
             shutil.move(self.file_path_var.get(), leak_name_folder)
+
+    def calculate_destination_path(self, category, date, domain, topic):
+        """
+        Calculate destination path without creating directories
+        
+        Args:
+            category: Combo/Database/Logs/Mixed
+            date: Date string in YYYY-MM-DD format
+            domain: Domain or folder name
+            topic: Topic name (fallback if domain is empty)
+        
+        Returns:
+            Full path string
+        """
+        db_folder = self.DEFAULT_DB_FOLDER
+        listbox_folder = os.path.join(db_folder, category)
+        date_folder = os.path.join(listbox_folder, date)
+        
+        if domain:
+            leak_name_folder = os.path.join(date_folder, domain)
+        else:
+            leak_name_folder = os.path.join(date_folder, topic)
+        
+        return leak_name_folder
+    
+    def prepare_file_data(self, file_path, base_category=None):
+        """
+        Prepare FilePreviewData for a single file
+        
+        Args:
+            file_path: Path to the file
+            base_category: Override category (if None, uses current combobox value)
+        
+        Returns:
+            FilePreviewData object
+        """
+        file_name_only, file_extension = os.path.splitext(os.path.basename(file_path))
+        full_file_name = file_name_only + file_extension
+        
+        # Get current values
+        category = base_category if base_category else self.combobox.get()
+        domain = file_name_only
+        topic = self.topic_value.get().strip()
+        link = self.link_value.get()
+        password = self.password_value.get()
+        date = self.date_var.get()
+        
+        # Check if we have metadata for this file
+        if full_file_name in self.messages:
+            msg = self.messages[full_file_name]
+            date = msg.date
+            # Update link with message ID
+            if link and "/" in link:
+                link_parts = link.split("/")
+                link_parts[-1] = str(msg.id)
+                link = "/".join(link_parts)
+        
+        # Calculate destination
+        destination = self.calculate_destination_path(category, date, domain, topic)
+        
+        return FilePreviewData(
+            file_path=file_path,
+            file_name=full_file_name,
+            category=category,
+            date=date,
+            domain=domain,
+            topic=topic,
+            link=link,
+            password=password,
+            destination_path=destination
+        )
+    
+    def process_file_data(self, file_data: FilePreviewData):
+        """
+        Process a single file based on FilePreviewData
+        Creates directories, moves file, creates readme
+        
+        Args:
+            file_data: FilePreviewData object with all information
+        """
+        # Create directory structure
+        db_folder = self.DEFAULT_DB_FOLDER
+        listbox_folder = os.path.join(db_folder, file_data.category)
+        date_folder = os.path.join(listbox_folder, file_data.date)
+        leak_name_folder = file_data.destination_path
+        
+        self.if_directory_not_exist_create_new(db_folder)
+        self.if_directory_not_exist_create_new(listbox_folder)
+        self.if_directory_not_exist_create_new(date_folder)
+        self.if_directory_not_exist_create_new(leak_name_folder)
+        
+        # Create readme
+        readme_file = os.path.join(leak_name_folder, "readme.txt")
+        with open(readme_file, "w") as file:
+            if file_data.domain and file_data.category == "Database":
+                file.write(file_data.domain + "\n")
+            file.write(f"{file_data.topic}\n{file_data.link}\n")
+            if file_data.password:
+                file.write(file_data.password)
+        
+        # Move file
+        if os.path.exists(file_data.file_path):
+            shutil.move(file_data.file_path, leak_name_folder)
+    
+    def recalculate_path_for_preview(self, file_data: FilePreviewData) -> str:
+        """
+        Recalculate destination path when preview data changes
+        
+        Args:
+            file_data: Updated FilePreviewData
+        
+        Returns:
+            New destination path
+        """
+        return self.calculate_destination_path(
+            file_data.category,
+            file_data.date,
+            file_data.domain,
+            file_data.topic
+        )
+    
+    def chain_submit_with_preview(self):
+        """
+        Chain submit with preview window - allows user to review and edit before processing
+        """
+        # Select folder with files
+        folder_path = filedialog.askdirectory(title="Choose Folder with Files")
+        if not folder_path:
+            return
+        
+        # Prepare preview data for all files
+        preview_data_list = []
+        
+        for file_name in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, file_name)
+            if os.path.isfile(file_path):
+                file_data = self.prepare_file_data(file_path)
+                preview_data_list.append(file_data)
+        
+        # Check if we have files
+        if not preview_data_list:
+            messagebox.showwarning("No Files", "No files found in selected folder.")
+            return
+        
+        # Show preview window
+        def on_confirm(final_data_list):
+            """Callback when user confirms processing"""
+            processed_count = 0
+            errors = []
+            
+            for file_data in final_data_list:
+                try:
+                    self.process_file_data(file_data)
+                    processed_count += 1
+                except Exception as e:
+                    errors.append(f"{file_data.file_name}: {str(e)}")
+            
+            # Show results
+            if errors:
+                error_msg = "\n".join(errors[:5])  # Show first 5 errors
+                if len(errors) > 5:
+                    error_msg += f"\n... and {len(errors) - 5} more errors"
+                messagebox.showwarning(
+                    "Processing Complete with Errors",
+                    f"Processed: {processed_count}/{len(final_data_list)}\n\nErrors:\n{error_msg}"
+                )
+            else:
+                messagebox.showinfo(
+                    "Success",
+                    f"Successfully processed {processed_count} files!"
+                )
+        
+        # Create and show preview window
+        preview_window = PreviewWindow(
+            parent=self.master,
+            preview_data=preview_data_list,
+            categories=OPTIONS,
+            on_confirm=on_confirm,
+            path_calculator=self.recalculate_path_for_preview
+        )
+        preview_window.wait_window()
 
     def chain_submit(self):
         folder_path = filedialog.askdirectory(title="Choose Folder with Files")
