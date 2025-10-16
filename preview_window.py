@@ -21,6 +21,7 @@ class FilePreviewData:
     link: str
     password: str
     destination_path: str
+    analysis_info: str = None  # Optional: info about auto-analysis
     
     def get_destination_summary(self) -> str:
         """Get short summary of destination"""
@@ -57,8 +58,13 @@ class FilePreviewItem(tk.Frame):
         file_frame = tk.Frame(self)
         file_frame.pack(fill=tk.X, padx=5, pady=2)
         
-        tk.Label(file_frame, text="📄", font=('Arial', 12)).pack(side=tk.LEFT, padx=2)
+        tk.Label(file_frame, text="[F]", font=('Arial', 10, 'bold'), fg='#3498db').pack(side=tk.LEFT, padx=2)
         tk.Label(file_frame, text=self.data.file_name, font=('Arial', 10, 'bold')).pack(side=tk.LEFT, padx=5)
+        
+        # Show analysis info if available
+        if hasattr(self.data, 'analysis_info') and self.data.analysis_info:
+            tk.Label(file_frame, text=f"[AI: {self.data.analysis_info}]", 
+                    font=('Arial', 8), fg='#27ae60').pack(side=tk.LEFT, padx=5)
         
         # Editable fields frame
         edit_frame = tk.Frame(self)

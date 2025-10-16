@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 from json_reader import Message, Messages
 from preview_window import PreviewWindow, FilePreviewData
+from filename_analyzer import FilenameAnalyzer
 
 DEFAULT_DB_FOLDER = "E:\\_WORK\\db"
 PAD_MAX = 10
@@ -30,6 +31,9 @@ class FileManagerApp:
         self.db_folder = tk.StringVar(value=DEFAULT_DB_FOLDER)
         self.PAD_MAX = 10
         self.PAD_MIN = 5
+        
+        # Initialize filename analyzer
+        self.filename_analyzer = FilenameAnalyzer()
 
         # Initialize variables
         self.selected_value = tk.StringVar(value="Combo")
@@ -269,13 +273,14 @@ class FileManagerApp:
         
         return leak_name_folder
     
-    def prepare_file_data(self, file_path, base_category=None):
+    def prepare_file_data(self, file_path, base_category=None, use_smart_analysis=True):
         """
         Prepare FilePreviewData for a single file
         
         Args:
             file_path: Path to the file
-            base_category: Override category (if None, uses current combobox value)
+            base_category: Override category (if None, uses intelligent analysis or current combobox value)
+            use_smart_analysis: If True, use filename analyzer to detect category and domain
         
         Returns:
             FilePreviewData object
@@ -283,9 +288,28 @@ class FileManagerApp:
         file_name_only, file_extension = os.path.splitext(os.path.basename(file_path))
         full_file_name = file_name_only + file_extension
         
-        # Get current values
-        category = base_category if base_category else self.combobox.get()
-        domain = file_name_only
+        # Smart analysis of filename
+        if use_smart_analysis and base_category is None:
+            analysis = self.filename_analyzer.analyze_filename(full_file_name)
+            category = analysis.suggested_category
+            
+            # Use detected domain if found, otherwise use filename
+            if analysis.domain_name and analysis.confidence in ['high', 'medium']:
+                domain = self.filename_analyzer.extract_clean_domain_name(analysis.domain_name)
+                # If domain is empty after cleaning, fallback to filename
+                if not domain:
+                    domain = file_name_only
+            else:
+                domain = file_name_only
+            
+            # Store analysis info for display in preview
+            analysis_info = f"Auto: {analysis.reason} (conf: {analysis.confidence})"
+        else:
+            # Manual mode or override
+            category = base_category if base_category else self.combobox.get()
+            domain = file_name_only
+            analysis_info = None
+        
         topic = self.topic_value.get().strip()
         link = self.link_value.get()
         password = self.password_value.get()
@@ -304,7 +328,7 @@ class FileManagerApp:
         # Calculate destination
         destination = self.calculate_destination_path(category, date, domain, topic)
         
-        return FilePreviewData(
+        file_data = FilePreviewData(
             file_path=file_path,
             file_name=full_file_name,
             category=category,
@@ -315,6 +339,12 @@ class FileManagerApp:
             password=password,
             destination_path=destination
         )
+        
+        # Store analysis info if available (for debugging/display)
+        if analysis_info:
+            file_data.analysis_info = analysis_info
+        
+        return file_data
     
     def process_file_data(self, file_data: FilePreviewData):
         """
