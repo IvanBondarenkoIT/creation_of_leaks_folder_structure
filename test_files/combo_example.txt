@@ -1,0 +1,5 @@
+email:password
+user1@example.com:pass123
+user2@test.com:mypassword
+admin@site.com:admin2024
+
