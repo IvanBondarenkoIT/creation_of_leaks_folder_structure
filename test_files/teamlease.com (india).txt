@@ -1,0 +1,4 @@
+email1@test.com:pass1
+email2@test.com:pass2
+email3@test.com:pass3
+

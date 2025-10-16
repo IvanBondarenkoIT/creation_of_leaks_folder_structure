@@ -293,13 +293,21 @@ class FileManagerApp:
             analysis = self.filename_analyzer.analyze_filename(full_file_name)
             category = analysis.suggested_category
             
-            # Use detected domain if found, otherwise use filename
-            if analysis.domain_name and analysis.confidence in ['high', 'medium']:
-                domain = self.filename_analyzer.extract_clean_domain_name(analysis.domain_name)
-                # If domain is empty after cleaning, fallback to filename
-                if not domain:
+            # For Database: try to extract clean domain with extension
+            if category == "Database":
+                # First try to extract domain.com format from filename
+                extracted_domain = self.filename_analyzer.extract_domain_from_filename(full_file_name)
+                if extracted_domain:
+                    domain = extracted_domain  # Keep dots: teamlease.com, bestbuy.ca, etc.
+                elif analysis.domain_name and analysis.confidence in ['high', 'medium']:
+                    # Fallback to detected domain
+                    domain = self.filename_analyzer.extract_clean_domain_name(analysis.domain_name)
+                    if not domain:
+                        domain = file_name_only
+                else:
                     domain = file_name_only
             else:
+                # For Combo: use filename as is
                 domain = file_name_only
             
             # Store analysis info for display in preview

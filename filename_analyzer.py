@@ -4,7 +4,7 @@ Intelligent analysis of filenames to detect domains, URLs, and determine file ca
 """
 
 import re
-from typing import Optional, Tuple
+from typing import Optional
 from dataclasses import dataclass
 
 
@@ -219,6 +219,46 @@ class FilenameAnalyzer:
         domain = domain.strip('_')
         
         return domain
+    
+    def extract_domain_from_filename(self, filename: str) -> Optional[str]:
+        """
+        Extract domain from complex filenames with countries, dates, etc.
+        
+        Examples:
+            teamlease.com (india) → teamlease.com
+            bestbuy.ca → bestbuy.ca
+            Blibli.com-indonasia → Blibli.com
+            Lebanon locatefamily_com 2022.05.04 (21 792) → locatefamily.com
+            
+        Args:
+            filename: Raw filename
+            
+        Returns:
+            Clean domain name with extension or None
+        """
+        # Remove file extension
+        name = re.sub(r'\.[^.]+$', '', filename)
+        
+        # Try to find domain.extension pattern (with dots)
+        # Match: word.com, word.co.uk, word.net, etc.
+        domain_with_dots = re.search(r'\b([a-zA-Z0-9-]+\.(?:com|net|org|io|co|uk|us|ca|de|fr|ru|in|id))\b', name, re.IGNORECASE)
+        if domain_with_dots:
+            return domain_with_dots.group(1)
+        
+        # Try to find domain_extension pattern (with underscore)
+        # Match: domain_com, domain_net, etc.
+        domain_underscore = re.search(r'\b([a-zA-Z0-9-]+)_(com|net|org|io|co|uk|us|ca|de|fr|ru|in|id)\b', name, re.IGNORECASE)
+        if domain_underscore:
+            # Convert underscore to dot: domain_com → domain.com
+            return f"{domain_underscore.group(1)}.{domain_underscore.group(2)}"
+        
+        # Look for domain patterns at the start of filename
+        # Match: bestbuy.ca, amazon.com, etc. even with extra text
+        start_domain = re.match(r'^([a-zA-Z0-9-]+\.(?:com|net|org|io|co|uk|us|ca|de|fr|ru|in|id))', name, re.IGNORECASE)
+        if start_domain:
+            return start_domain.group(1)
+        
+        return None
 
 
 # Test function
