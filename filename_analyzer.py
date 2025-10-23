@@ -256,28 +256,36 @@ class FilenameAnalyzer:
         Returns:
             Clean domain name with extension or None
         """
-        # Remove file extension
-        name = re.sub(r'\.[^.]+$', '', filename)
+        # Remove file extension (but not domain extensions)
+        # Only remove if it's not a domain extension
+        domain_extensions = r'\.(com|net|org|io|co|uk|us|ca|de|fr|ru|in|id|au|nl|br|mx|es|it|ch|se|no|dk|fi|be|at|pl|cz|gr|pt|tr|ae|sa|za|nz|sg|hk|tw|kr|jp|cn|vn|th|my|ph)$'
+        if not re.search(domain_extensions, filename, re.IGNORECASE):
+            name = re.sub(r'\.[^.]+$', '', filename)
+        else:
+            name = filename
         
         # Extended list of domain extensions - using capturing group
         extensions = r'(com|net|org|io|co|uk|us|ca|de|fr|ru|in|id|au|nl|br|mx|es|it|ch|se|no|dk|fi|be|at|pl|cz|gr|pt|tr|ae|sa|za|nz|sg|hk|tw|kr|jp|cn|vn|th|my|ph)'
         
         # PRIORITY 1: Full domain.extension pattern (with dots) - most reliable
         # Match: word.com, word.co.uk, site.net anywhere in filename
-        domain_with_dots = re.search(rf'\b([a-zA-Z0-9-]+\.{extensions})\b', name, re.IGNORECASE)
+        domain_with_dots = re.search(rf'([a-zA-Z0-9_-]+\.{extensions})', name, re.IGNORECASE)
         if domain_with_dots:
-            return domain_with_dots.group(1)
+            # Convert underscores to dots in domain name
+            domain = domain_with_dots.group(1)
+            domain = domain.replace('_', '.')
+            return domain
         
         # PRIORITY 2: domain_extension pattern (with underscore)
         # Match: domain_com, domain_net, paypal_com, etc.
-        domain_underscore = re.search(rf'\b([a-zA-Z0-9-]+)_{extensions}\b', name, re.IGNORECASE)
+        domain_underscore = re.search(rf'([a-zA-Z0-9-]+)_{extensions}', name, re.IGNORECASE)
         if domain_underscore:
             # Convert underscore to dot: domain_com → domain.com
             return f"{domain_underscore.group(1)}.{domain_underscore.group(2)}"
         
         # PRIORITY 3: domain-extension pattern (with dash)
         # Match: domain-com, site-net, etc.
-        domain_dash = re.search(rf'\b([a-zA-Z0-9]+)-{extensions}\b', name, re.IGNORECASE)
+        domain_dash = re.search(rf'([a-zA-Z0-9]+)-{extensions}', name, re.IGNORECASE)
         if domain_dash:
             # Convert dash to dot: domain-com → domain.com
             return f"{domain_dash.group(1)}.{domain_dash.group(2)}"

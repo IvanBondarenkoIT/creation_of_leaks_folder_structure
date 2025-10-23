@@ -324,19 +324,17 @@ class FileManagerApp:
                 
                 if extracted_domain:
                     # Successfully extracted domain - keep as Database
-                    domain = extracted_domain  # Keep dots: teamlease.com, bestbuy.ca, etc.
+                    # Use the full domain with extension for folder name
+                    domain = extracted_domain  # Keep dots: order_bnaia.com, teamlease.com, etc.
                     analysis_info = f"Auto: Database with domain '{extracted_domain}' (conf: {analysis.confidence})"
                 elif analysis.domain_name and analysis.confidence in ['high', 'medium']:
                     # Fallback to detected domain from analysis
-                    clean_domain = self.filename_analyzer.extract_clean_domain_name(analysis.domain_name)
-                    if clean_domain:
-                        domain = clean_domain
-                        analysis_info = f"Auto: Database with domain '{clean_domain}' (conf: {analysis.confidence})"
+                    # For Database files, keep the full domain name with extension
+                    if '.' in analysis.domain_name:
+                        domain = analysis.domain_name  # Keep full domain: order_bnaia.com
                     else:
-                        # Can't extract domain - downgrade to Combo
-                        category = "Combo"
-                        domain = file_name_only
-                        analysis_info = f"Auto: No domain found, switched to Combo (was: {analysis.reason})"
+                        domain = analysis.domain_name  # Use as is if no extension
+                    analysis_info = f"Auto: Database with domain '{domain}' (conf: {analysis.confidence})"
                 else:
                     # No domain found - downgrade to Combo
                     category = "Combo"
