@@ -17,10 +17,13 @@ def test_analysis_fixes():
         ("bestbuy.ca", "Database", "bestbuy.ca", "Should be Database - domain with dot"),
         ("VALID_MEGA_COMBO", "Combo", None, "Should be Combo - combo indicators"),
         ("teamlease.com (india)", "Database", "teamlease.com", "Should be Database - domain with dot"),
-        ("random_org", "Combo", None, "Should be Combo - not known company"),
+        ("random_org", "Database", "random.org", "Should be Database - domain with underscore converted"),
         ("facebook_com", "Database", "facebook", "Should be Database - known company"),
         ("Germany_hotmail", "Combo", None, "Should be Combo - combo indicators"),
         ("shopify_com", "Database", "shopify", "Should be Database - known company"),
+        ("6av_top", "Database", "6av.top", "Should be Database - domain with underscore converted"),
+        ("aitrip_cl", "Database", "aitrip.cl", "Should be Database - domain with underscore converted"),
+        ("example_net", "Database", "example.net", "Should be Database - domain with underscore converted"),
     ]
     
     print("=" * 80)
