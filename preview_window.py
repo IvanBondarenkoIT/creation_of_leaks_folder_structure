@@ -137,6 +137,10 @@ class PreviewWindow:
         self.window.transient(parent)
         self.window.grab_set()
         
+        # Ensure window is visible
+        self.window.lift()
+        self.window.focus_force()
+        
         # Store preview items
         self.preview_items: List[FilePreviewItem] = []
         
@@ -147,6 +151,12 @@ class PreviewWindow:
         x = (self.window.winfo_screenwidth() // 2) - (self.window.winfo_width() // 2)
         y = (self.window.winfo_screenheight() // 2) - (self.window.winfo_height() // 2)
         self.window.geometry(f"+{x}+{y}")
+        
+        # Force window to be visible
+        self.window.deiconify()
+        self.window.lift()
+        self.window.attributes('-topmost', True)
+        self.window.after(100, lambda: self.window.attributes('-topmost', False))
         
     def _create_widgets(self):
         """Create all widgets for preview window"""

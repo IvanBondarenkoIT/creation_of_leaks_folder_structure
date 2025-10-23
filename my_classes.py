@@ -489,14 +489,21 @@ class FileManagerApp:
                 )
         
         # Create and show preview window
-        preview_window = PreviewWindow(
-            parent=self.master,
-            preview_data=preview_data_list,
-            categories=OPTIONS,
-            on_confirm=on_confirm,
-            path_calculator=self.recalculate_path_for_preview
-        )
-        preview_window.wait_window()
+        print(f"Creating preview window with {len(preview_data_list)} files")
+        try:
+            preview_window = PreviewWindow(
+                parent=self.master,
+                preview_data=preview_data_list,
+                categories=OPTIONS,
+                on_confirm=on_confirm,
+                path_calculator=self.recalculate_path_for_preview
+            )
+            print("Preview window created successfully")
+            preview_window.wait_window()
+            print("Preview window closed")
+        except Exception as e:
+            print(f"Error creating preview window: {e}")
+            messagebox.showerror("Error", f"Failed to create preview window: {e}")
 
     def chain_submit(self):
         folder_path = filedialog.askdirectory(title="Choose Folder with Files")
