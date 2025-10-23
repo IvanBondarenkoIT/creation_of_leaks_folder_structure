@@ -29,7 +29,11 @@ class FilenameAnalyzer:
         r'\.pl', r'\.cz', r'\.be', r'\.at', r'\.ch', r'\.mx', r'\.ar', r'\.cl',
         r'\.gov', r'\.edu', r'\.mil', r'\.int', r'\.info', r'\.biz', r'\.app',
         r'\.dev', r'\.tech', r'\.store', r'\.shop', r'\.online', r'\.site',
-        r'\.xyz', r'\.top', r'\.vip', r'\.club', r'\.pro', r'\.tv', r'\.cc'
+        r'\.xyz', r'\.top', r'\.vip', r'\.club', r'\.pro', r'\.tv', r'\.cc',
+        r'\.am', r'\.id', r'\.me', r'\.ly', r'\.be', r'\.nz', r'\.sg', r'\.hk',
+        r'\.tw', r'\.th', r'\.my', r'\.ph', r'\.vn', r'\.tr', r'\.ae', r'\.sa',
+        r'\.za', r'\.gr', r'\.pt', r'\.ro', r'\.bg', r'\.hr', r'\.si', r'\.sk',
+        r'\.hu', r'\.lt', r'\.lv', r'\.ee', r'\.ie', r'\.is', r'\.mt', r'\.cy'
     ]
     
     def __init__(self):
@@ -48,7 +52,7 @@ class FilenameAnalyzer:
         
         # Domain with underscores (common in filenames): domain_com
         self.domain_underscore_pattern = re.compile(
-            r'([a-zA-Z0-9-]+)_(com|net|org|io|co|ru|de|fr|uk|us|ca|au|it|es|br|gov|edu|top|cl|me|info|biz|name|pro|tv|cc|ly|be|nl|se|no|dk|fi|ch|at|pl|cz|gr|pt|tr|ae|sa|za|nz|sg|hk|tw|kr|jp|cn|vn|th|my|ph)',
+            r'([a-zA-Z0-9-]+)_(com|net|org|io|co|ru|de|fr|uk|us|ca|au|it|es|br|gov|edu|top|cl|me|info|biz|name|pro|tv|cc|ly|be|nl|se|no|dk|fi|ch|at|pl|cz|gr|pt|tr|ae|sa|za|nz|sg|hk|tw|kr|jp|cn|vn|th|my|ph|am|id|nz|ro|bg|hr|si|sk|hu|lt|lv|ee|ie|is|mt|cy)',
             re.IGNORECASE
         )
         
@@ -265,7 +269,7 @@ class FilenameAnalyzer:
             name = filename
         
         # Extended list of domain extensions - using capturing group
-        extensions = r'(com|net|org|io|co|uk|us|ca|de|fr|ru|in|id|au|nl|br|mx|es|it|ch|se|no|dk|fi|be|at|pl|cz|gr|pt|tr|ae|sa|za|nz|sg|hk|tw|kr|jp|cn|vn|th|my|ph)'
+        extensions = r'(com|net|org|io|co|uk|us|ca|de|fr|ru|in|id|au|nl|br|mx|es|it|ch|se|no|dk|fi|be|at|pl|cz|gr|pt|tr|ae|sa|za|nz|sg|hk|tw|kr|jp|cn|vn|th|my|ph|am|me|ly|nz|ro|bg|hr|si|sk|hu|lt|lv|ee|ie|is|mt|cy)'
         
         # PRIORITY 1: Full domain.extension pattern (with dots) - most reliable
         # Match: word.com, word.co.uk, site.net anywhere in filename
