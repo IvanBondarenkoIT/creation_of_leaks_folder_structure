@@ -106,36 +106,38 @@ class FilenameAnalyzer:
             detected_patterns.append(f"URL: {url_match.group(0)}")
             return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
         
-        # 2. Check for domain.extension pattern
+        # 2. Check for domain.extension pattern (PRIORITY: highest for Database)
         domain_match = self.domain_pattern.search(filename)
         if domain_match:
             potential_domain = domain_match.group(1)
-            # Verify it's not a common combo word with extension-like ending
-            if not any(indicator in potential_domain.lower() for indicator in self.combo_indicators):
-                domain_name = potential_domain
-                category = "Database"
-                confidence = "high"
-                reason = f"Domain detected: {potential_domain}"
-                detected_patterns.append(f"Domain: {potential_domain}")
-                return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
+            # For domain.extension pattern, ALWAYS treat as Database (high confidence)
+            # Examples: booktoday.org, amazon.com, bestbuy.ca
+            domain_name = potential_domain
+            category = "Database"
+            confidence = "high"
+            reason = f"Domain detected: {potential_domain}"
+            detected_patterns.append(f"Domain: {potential_domain}")
+            return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
         
         # 3. Check for domain_extension pattern (e.g., amazon_com)
-        # BUT: Check for combo indicators first to avoid false positives
-        combo_count = sum(1 for indicator in self.combo_indicators if indicator in name_lower)
-        
+        # BUT: Only for KNOWN companies to avoid false positives like "2_Store"
         underscore_match = self.domain_underscore_pattern.search(name_lower)
-        if underscore_match and combo_count < 2:  # Only if not strong combo file
+        if underscore_match:
             potential_domain = underscore_match.group(1)
-            # Additional check: is it a known company?
+            # STRICT CHECK: Only treat as Database if it's a known company
             is_known_company = potential_domain in self.company_indicators
             
             if is_known_company:
                 domain_name = potential_domain
                 category = "Database"
                 confidence = "high"
-                reason = f"Domain with underscore detected: {potential_domain}"
+                reason = f"Known company domain with underscore: {potential_domain}"
                 detected_patterns.append(f"Domain_ext: {underscore_match.group(0)}")
                 return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
+            else:
+                # Not a known company - treat as Combo
+                # Examples: 2_Store, random_org, etc.
+                pass
         
         # 4. Check for known company/brand names
         for company in self.company_indicators:
@@ -150,9 +152,8 @@ class FilenameAnalyzer:
                     # Don't return yet, might find better match
                     break
         
-        # 5. Check for strong combo indicators (recount if not done earlier)
-        if 'combo_count' not in locals():
-            combo_count = sum(1 for indicator in self.combo_indicators if indicator in name_lower)
+        # 5. Check for strong combo indicators
+        combo_count = sum(1 for indicator in self.combo_indicators if indicator in name_lower)
         if combo_count >= 2:
             category = "Combo"
             confidence = "high"
