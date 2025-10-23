@@ -19,7 +19,7 @@ OPTIONS = ["Combo", "Database", "Logs", "Mixed"]
 class FileManagerApp:
     def __init__(self, master, work_folder=DEFAULT_DB_FOLDER, settings=None, work_links: dict = None, messages: dict[str, Message] = None):
         self.messages = messages or {}
-        print(self.messages)
+        print(f"Initializing with {len(self.messages)} messages")
 
         self.master = master
         master.title("Leeks file manager")
@@ -62,6 +62,30 @@ class FileManagerApp:
         # Bind the callback function to the text_topic_link variable
         self.link_value.trace_add("write", self.update_topic_name)
         self.combobox_value.trace_add("write", self.update_topic_name_by_combobox)
+        
+        # Add loading indicator
+        self.loading_label = tk.Label(self.master, text="Loading messages...", 
+                                     font=('Arial', 10), fg='blue')
+        self.loading_label.grid(row=0, column=0, columnspan=2, pady=5)
+        
+        # Hide loading indicator initially
+        self.loading_label.grid_remove()
+
+    def show_loading(self):
+        """Show loading indicator"""
+        self.loading_label.grid(row=0, column=0, columnspan=2, pady=5)
+        self.master.update()
+
+    def hide_loading(self):
+        """Hide loading indicator"""
+        self.loading_label.grid_remove()
+        self.master.update()
+
+    def update_messages(self, messages):
+        """Update messages and hide loading indicator"""
+        self.messages = messages
+        self.hide_loading()
+        print(f"Updated with {len(self.messages)} messages")
 
     def create_widgets(self):
         combobox_label = tk.Label(self.master, text="Select Option:")
