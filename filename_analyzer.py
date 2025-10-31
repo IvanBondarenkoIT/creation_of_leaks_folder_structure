@@ -79,6 +79,18 @@ class FilenameAnalyzer:
             'italy', 'poland', 'russia', 'china', 'japan', 'korea', 'brazil',
             'india', 'vietnam', 'indonesia', 'denmark', 'netherlands', 'sweden'
         ]
+        
+        # Geographic indicators that suggest the file is NOT a database
+        self.geographic_indicators = [
+            'kab', 'kabupaten', 'provinsi', 'province', 'kota', 'city',
+            'selatan', 'utara', 'barat', 'timur', 'tengah', 'pusat',
+            'jakarta', 'surabaya', 'bandung', 'medan', 'semarang',
+            'berlin', 'munich', 'hamburg', 'frankfurt', 'cologne',
+            'london', 'paris', 'madrid', 'rome', 'amsterdam',
+            'bangka', 'belitung', 'sumatra', 'kalimantan', 'java', 'bali',
+            'germany', 'indonesia', 'malaysia', 'singapore', 'philippines',
+            'thailand', 'vietnam', 'cambodia', 'laos', 'myanmar'
+        ]
     
     def analyze_filename(self, filename: str) -> FileAnalysisResult:
         """
@@ -114,14 +126,34 @@ class FilenameAnalyzer:
         domain_match = self.domain_pattern.search(filename)
         if domain_match:
             potential_domain = domain_match.group(1)
-            # For domain.extension pattern, ALWAYS treat as Database (high confidence)
-            # Examples: booktoday.org, amazon.com, bestbuy.ca
-            domain_name = potential_domain
-            category = "Database"
-            confidence = "high"
-            reason = f"Domain detected: {potential_domain}"
-            detected_patterns.append(f"Domain: {potential_domain}")
-            return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
+            
+            # Check for false positives: geographic names, long names, etc.
+            # Extract just the domain part (without extension)
+            domain_part = potential_domain.split('.')[0] if '.' in potential_domain else potential_domain
+            
+            # Check for geographic indicators in filename
+            has_geographic_indicator = any(indicator in name_lower for indicator in self.geographic_indicators)
+            
+            # Check if potential domain contains geographic indicators
+            domain_has_geo = any(indicator in domain_part.lower() for indicator in self.geographic_indicators)
+            
+            # Check if domain is too long (likely not a domain)
+            is_too_long = len(domain_part) > 20
+            
+            # Only treat as domain if it doesn't look like geographic name
+            if not has_geographic_indicator and not domain_has_geo and not is_too_long:
+                # For domain.extension pattern, treat as Database (high confidence)
+                # Examples: booktoday.org, amazon.com, bestbuy.ca
+                domain_name = potential_domain
+                category = "Database"
+                confidence = "high"
+                reason = f"Domain detected: {potential_domain}"
+                detected_patterns.append(f"Domain: {potential_domain}")
+                return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
+            else:
+                # Likely a false positive (geographic name) - treat as Combo
+                # Examples: BANGKA.BE (from BANGKA_BELITUNG), etc.
+                pass
         
         # 3. Check for domain_extension pattern (e.g., amazon_com, 6av_top)
         # BUT: Check for combo indicators first to avoid false positives
@@ -145,8 +177,36 @@ class FilenameAnalyzer:
                 return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
             else:
                 # Not a known company, but could be a valid domain
+                # Check for false positives: geographic names, long names, etc.
+                
+                # Check for geographic indicators in filename
+                has_geographic_indicator = any(indicator in name_lower for indicator in self.geographic_indicators)
+                
+                # Check if potential domain is too long (likely not a domain)
+                # Real domains are usually short: amazon, google, facebook, etc.
+                is_too_long = len(potential_domain) > 20
+                
+                # Check if potential domain contains geographic indicators
+                domain_has_geo = any(indicator in potential_domain.lower() for indicator in self.geographic_indicators)
+                
+                # Check if there are many words after potential domain (suggests it's not a domain)
+                # Example: BANGKA_BELITUNG_KAB where BELITUNG is continuation, not domain
+                match_end_pos = underscore_match.end()
+                remaining_text = name_lower[match_end_pos:]
+                remaining_words = len([w for w in remaining_text.split('_') if len(w) > 3])
+                has_many_remaining_words = remaining_words > 2
+                
                 # Check if it looks like a real domain (not just random words)
-                if len(potential_domain) >= 2 and not any(word in potential_domain for word in ['store', 'shop', 'market', 'site', 'web', 'valid', 'mega', 'combo']):
+                is_valid_length = len(potential_domain) >= 2 and len(potential_domain) <= 20
+                no_forbidden_words = not any(word in potential_domain for word in ['store', 'shop', 'market', 'site', 'web', 'valid', 'mega', 'combo'])
+                
+                # Only treat as domain if all checks pass
+                if (is_valid_length and 
+                    no_forbidden_words and 
+                    not has_geographic_indicator and 
+                    not domain_has_geo and 
+                    not is_too_long and
+                    not has_many_remaining_words):
                     # Convert underscore to dot: 6av_top -> 6av.top
                     domain_with_dot = f"{potential_domain}.{extension}"
                     domain_name = domain_with_dot
@@ -156,8 +216,8 @@ class FilenameAnalyzer:
                     detected_patterns.append(f"Domain_ext: {underscore_match.group(0)}")
                     return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
                 else:
-                    # Looks like a store/shop name or combo - treat as Combo
-                    # Examples: 2_Store, random_shop, VALID_MEGA_COMBO, etc.
+                    # Looks like geographic name, store/shop name or combo - treat as Combo
+                    # Examples: BANGKA_BELITUNG_KAB, 2_Store, VALID_MEGA_COMBO, etc.
                     pass
         
         # 4. Check for known company/brand names
