@@ -458,6 +458,16 @@ class FileManagerApp:
             messagebox.showwarning("No Files", "No files found in selected folder.")
             return
         
+        # Sort preview data: Database files first, then others
+        # This makes it easier to find Database files in the preview window
+        def sort_key(data: FilePreviewData):
+            # Database gets priority (0), others get 1
+            priority = 0 if data.category == "Database" else 1
+            # Secondary sort by file name for consistency
+            return (priority, data.file_name.lower())
+        
+        preview_data_list.sort(key=sort_key)
+        
         # Show preview window
         def on_confirm(final_data_list):
             """Callback when user confirms processing"""

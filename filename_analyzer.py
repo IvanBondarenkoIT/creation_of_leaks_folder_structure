@@ -70,7 +70,8 @@ class FilenameAnalyzer:
             'combo', 'mix', 'mixed', 'valid', 'fresh', 'hq', 'premium', 'private',
             'mega', 'cloud', 'collection', 'pack', 'archive', 'bundle',
             'hotmail', 'gmail', 'yahoo', 'mail', 'email', 'mailaccess',
-            'hits', 'good', 'ok', 'checked', 'working'
+            'hits', 'good', 'ok', 'checked', 'working',
+            'sample', 'test', 'example', 'demo', 'trial', 'mock', 'dummy', 'fake'
         ]
         
         # Country codes that usually indicate combos
@@ -159,79 +160,102 @@ class FilenameAnalyzer:
         # BUT: Check for combo indicators first to avoid false positives
         combo_count = sum(1 for indicator in self.combo_indicators if indicator in name_lower)
         
+        # Check for sample/test/demo/examples words (strong indicator it's not a database)
+        sample_test_words = ['sample', 'test', 'example', 'demo', 'trial', 'mock', 'dummy', 'fake']
+        has_sample_test_word = any(word in name_lower for word in sample_test_words)
+        
         underscore_match = self.domain_underscore_pattern.search(name_lower)
-        if underscore_match and combo_count < 2:  # Only if not strong combo file
+        if underscore_match and combo_count < 2 and not has_sample_test_word:  # Only if not combo/sample file
             potential_domain = underscore_match.group(1)
             extension = underscore_match.group(2)
             
-            # Check if it's a known company (high priority)
-            is_known_company = potential_domain in self.company_indicators
+            # Check if extension is part of a sample/test word (e.g., "sa" from "sample")
+            # If extension is "sa" and next characters form "sample", it's not a domain
+            match_end_pos = underscore_match.end()
+            is_false_extension = False
+            if match_end_pos < len(name_lower):
+                next_chars = name_lower[match_end_pos:match_end_pos+4]  # Check next 4 chars
+                # Check if "sa" is part of "sample" (sa + mple)
+                if extension.lower() == 'sa' and (next_chars.startswith('mpl') or 'sample' in name_lower):
+                    is_false_extension = True
+                # Check if extension is part of test/example/demo words
+                if any(word in name_lower for word in ['test', 'example', 'demo', 'trial', 'mock']):
+                    # Check if extension is first part of these words
+                    for word in ['test', 'example', 'demo', 'trial', 'mock']:
+                        if word.startswith(extension.lower()) and word != extension.lower():
+                            is_false_extension = True
+                            break
             
-            if is_known_company:
-                # Known company - definitely Database
-                domain_name = potential_domain
-                category = "Database"
-                confidence = "high"
-                reason = f"Known company domain with underscore: {potential_domain}"
-                detected_patterns.append(f"Domain_ext: {underscore_match.group(0)}")
-                return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
-            else:
-                # Not a known company, but could be a valid domain
-                # Check for false positives: geographic names, long names, etc.
+            if not is_false_extension:
+                # Check if it's a known company (high priority)
+                is_known_company = potential_domain in self.company_indicators
                 
-                # Check for geographic indicators in filename
-                has_geographic_indicator = any(indicator in name_lower for indicator in self.geographic_indicators)
-                
-                # Check if potential domain is too long (likely not a domain)
-                # Real domains are usually short: amazon, google, facebook, etc.
-                is_too_long = len(potential_domain) > 20
-                
-                # Check if potential domain contains geographic indicators
-                domain_has_geo = any(indicator in potential_domain.lower() for indicator in self.geographic_indicators)
-                
-                # Check if there are many words after potential domain (suggests it's not a domain)
-                # Example: BANGKA_BELITUNG_KAB where BELITUNG is continuation, not domain
-                match_end_pos = underscore_match.end()
-                remaining_text = name_lower[match_end_pos:]
-                remaining_words = len([w for w in remaining_text.split('_') if len(w) > 3])
-                has_many_remaining_words = remaining_words > 2
-                
-                # Check if it looks like a real domain (not just random words)
-                is_valid_length = len(potential_domain) >= 2 and len(potential_domain) <= 20
-                no_forbidden_words = not any(word in potential_domain for word in ['store', 'shop', 'market', 'site', 'web', 'valid', 'mega', 'combo'])
-                
-                # Only treat as domain if all checks pass
-                if (is_valid_length and 
-                    no_forbidden_words and 
-                    not has_geographic_indicator and 
-                    not domain_has_geo and 
-                    not is_too_long and
-                    not has_many_remaining_words):
-                    # Convert underscore to dot: 6av_top -> 6av.top
-                    domain_with_dot = f"{potential_domain}.{extension}"
-                    domain_name = domain_with_dot
+                if is_known_company:
+                    # Known company - definitely Database (but not if sample/test file)
+                    domain_name = potential_domain
                     category = "Database"
-                    confidence = "medium"
-                    reason = f"Domain with underscore converted: {domain_with_dot}"
+                    confidence = "high"
+                    reason = f"Known company domain with underscore: {potential_domain}"
                     detected_patterns.append(f"Domain_ext: {underscore_match.group(0)}")
                     return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
                 else:
-                    # Looks like geographic name, store/shop name or combo - treat as Combo
-                    # Examples: BANGKA_BELITUNG_KAB, 2_Store, VALID_MEGA_COMBO, etc.
-                    pass
+                    # Not a known company, but could be a valid domain
+                    # Check for false positives: geographic names, long names, etc.
+                    
+                    # Check for geographic indicators in filename
+                    has_geographic_indicator = any(indicator in name_lower for indicator in self.geographic_indicators)
+                    
+                    # Check if potential domain is too long (likely not a domain)
+                    # Real domains are usually short: amazon, google, facebook, etc.
+                    is_too_long = len(potential_domain) > 20
+                    
+                    # Check if potential domain contains geographic indicators
+                    domain_has_geo = any(indicator in potential_domain.lower() for indicator in self.geographic_indicators)
+                    
+                    # Check if there are many words after potential domain (suggests it's not a domain)
+                    # Example: BANGKA_BELITUNG_KAB where BELITUNG is continuation, not domain
+                    match_end_pos = underscore_match.end()
+                    remaining_text = name_lower[match_end_pos:]
+                    remaining_words = len([w for w in remaining_text.split('_') if len(w) > 3])
+                    has_many_remaining_words = remaining_words > 2
+                    
+                    # Check if it looks like a real domain (not just random words)
+                    is_valid_length = len(potential_domain) >= 2 and len(potential_domain) <= 20
+                    no_forbidden_words = not any(word in potential_domain for word in ['store', 'shop', 'market', 'site', 'web', 'valid', 'mega', 'combo'])
+                    
+                    # Only treat as domain if all checks pass
+                    if (is_valid_length and 
+                        no_forbidden_words and 
+                        not has_geographic_indicator and 
+                        not domain_has_geo and 
+                        not is_too_long and
+                        not has_many_remaining_words):
+                        # Convert underscore to dot: 6av_top -> 6av.top
+                        domain_with_dot = f"{potential_domain}.{extension}"
+                        domain_name = domain_with_dot
+                        category = "Database"
+                        confidence = "medium"
+                        reason = f"Domain with underscore converted: {domain_with_dot}"
+                        detected_patterns.append(f"Domain_ext: {underscore_match.group(0)}")
+                        return FileAnalysisResult(category, domain_name, confidence, reason, detected_patterns)
+                    else:
+                        # Looks like geographic name, store/shop name or combo - treat as Combo
+                        # Examples: BANGKA_BELITUNG_KAB, 2_Store, VALID_MEGA_COMBO, etc.
+                        pass
         
-        # 4. Check for known company/brand names
-        for company in self.company_indicators:
-            if company in name_lower:
-                # Check if it's surrounded by word boundaries
-                if re.search(rf'\b{company}\b', name_lower):
-                    domain_name = company
-                    category = "Database"
-                    confidence = "medium"
-                    reason = f"Company/brand name detected: {company}"
-                    detected_patterns.append(f"Company: {company}")
-                    # Don't return yet, might find better match
-                    break
+        # 4. Check for known company/brand names (but not if sample/test/demo file)
+        if not has_sample_test_word:  # Skip if sample/test/demo file
+            for company in self.company_indicators:
+                if company in name_lower:
+                    # Check if it's surrounded by word boundaries
+                    if re.search(rf'\b{company}\b', name_lower):
+                        domain_name = company
+                        category = "Database"
+                        confidence = "medium"
+                        reason = f"Company/brand name detected: {company}"
+                        detected_patterns.append(f"Company: {company}")
+                        # Don't return yet, might find better match
+                        break
         
         # 5. Check for strong combo indicators
         combo_count = sum(1 for indicator in self.combo_indicators if indicator in name_lower)
