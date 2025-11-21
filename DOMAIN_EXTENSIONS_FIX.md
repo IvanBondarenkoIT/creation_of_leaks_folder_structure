@@ -223,3 +223,4 @@ Germany_hotmail → Combo / None
 
 _Исправлено в ветке `experiments` коммитом `72432af`_  
 _Дата: 2025-10-16_
+

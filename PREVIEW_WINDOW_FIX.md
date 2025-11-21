@@ -193,3 +193,4 @@ Error creating preview window: [описание ошибки]
 
 _Исправлено в ветке `experiments` коммитом `a4e432c`_  
 _Дата: 2025-10-16_
+

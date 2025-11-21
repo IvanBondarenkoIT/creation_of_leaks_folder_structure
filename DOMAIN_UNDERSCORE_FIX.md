@@ -191,3 +191,4 @@ Germany_hotmail → Combo (combo индикаторы)
 
 _Исправлено в ветке `experiments` коммитом `fb78d2d`_  
 _Дата: 2025-10-16_
+

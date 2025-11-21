@@ -9,3 +9,8 @@ CREATE TABLE users (
 INSERT INTO users VALUES (1, 'admin', 'admin@test.com', 'hash123');
 INSERT INTO users VALUES (2, 'user', 'user@test.com', 'hash456');
 
+
+
+
+
+

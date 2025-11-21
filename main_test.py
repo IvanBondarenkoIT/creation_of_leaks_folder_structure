@@ -28,3 +28,4 @@ if __name__ == "__main__":
     root.mainloop()
 
     settings.set_work_folder_to_file(work_folder)
+
